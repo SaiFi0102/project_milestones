@@ -1,0 +1,62 @@
+{
+ "creation": "2019-12-11 21:04:57.304589",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_name",
+  "project_stage",
+  "client_view",
+  "attached_document",
+  "document_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project_stage",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Stage",
+   "options": "Project Stage"
+  },
+  {
+   "default": "0",
+   "fieldname": "client_view",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Client View"
+  },
+  {
+   "fieldname": "attached_document",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Attachment"
+  },
+  {
+   "default": "Awaiting Upload",
+   "fieldname": "document_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Awaiting Upload\nPending Approval\nApproved",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-12-12 17:17:58.738059",
+ "modified_by": "Administrator",
+ "module": "Project Milestones",
+ "name": "Project Document",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

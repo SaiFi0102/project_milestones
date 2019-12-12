@@ -1,0 +1,28 @@
+{
+ "creation": "2019-12-11 20:03:21.542483",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Name"
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-12-12 17:17:57.284029",
+ "modified_by": "Administrator",
+ "module": "Project Milestones",
+ "name": "Project Stage Document",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

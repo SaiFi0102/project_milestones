@@ -1,0 +1,29 @@
+{
+ "creation": "2019-12-12 21:13:35.435948",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "project_stage"
+ ],
+ "fields": [
+  {
+   "fieldname": "project_stage",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project Stage",
+   "options": "Project Stage"
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-12-12 21:21:42.429602",
+ "modified_by": "Administrator",
+ "module": "Project Milestones",
+ "name": "Project Type Stage",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

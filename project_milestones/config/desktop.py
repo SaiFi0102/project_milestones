@@ -6,6 +6,7 @@ def get_data():
 	return [
 		{
 			"module_name": "Project Milestones",
+			"category": "Modules",
 			"color": "blue",
 			"icon": "fa fa-tasks",
 			"type": "module",

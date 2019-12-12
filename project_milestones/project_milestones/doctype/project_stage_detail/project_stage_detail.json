@@ -1,0 +1,40 @@
+{
+ "creation": "2019-12-11 20:20:24.264734",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "project_stage",
+  "stage_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "project_stage",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project Stage",
+   "options": "Project Stage",
+   "reqd": 1
+  },
+  {
+   "default": "Not Started",
+   "fieldname": "stage_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Not Started\nIn Progress\nCompleted",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-12-12 21:01:03.976634",
+ "modified_by": "Administrator",
+ "module": "Project Milestones",
+ "name": "Project Stage Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
