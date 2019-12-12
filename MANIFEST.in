@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include project_milestones *.css
+recursive-include project_milestones *.csv
+recursive-include project_milestones *.html
+recursive-include project_milestones *.ico
+recursive-include project_milestones *.js
+recursive-include project_milestones *.json
+recursive-include project_milestones *.md
+recursive-include project_milestones *.png
+recursive-include project_milestones *.py
+recursive-include project_milestones *.svg
+recursive-include project_milestones *.txt
+recursive-exclude project_milestones *.pyc
