@@ -4,6 +4,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "project_timeline",
   "document_name",
   "project_stage",
   "client_view",
@@ -12,6 +13,7 @@
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "document_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -19,6 +21,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "project_stage",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -26,6 +29,7 @@
    "options": "Project Stage"
   },
   {
+   "columns": 1,
    "default": "0",
    "fieldname": "client_view",
    "fieldtype": "Check",
@@ -33,12 +37,14 @@
    "label": "Client View"
   },
   {
+   "columns": 1,
    "fieldname": "attached_document",
    "fieldtype": "Attach",
    "in_list_view": 1,
    "label": "Attachment"
   },
   {
+   "columns": 2,
    "default": "Awaiting Upload",
    "fieldname": "document_status",
    "fieldtype": "Select",
@@ -46,10 +52,18 @@
    "label": "Status",
    "options": "Awaiting Upload\nPending Approval\nApproved",
    "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "project_timeline",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Timeline",
+   "options": "Project Timeline"
   }
  ],
  "istable": 1,
- "modified": "2019-12-12 17:17:58.738059",
+ "modified": "2019-12-13 02:20:45.990374",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Document",

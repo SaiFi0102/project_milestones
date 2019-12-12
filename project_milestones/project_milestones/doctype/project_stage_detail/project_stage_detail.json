@@ -4,6 +4,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "project_timeline",
   "project_stage",
   "stage_status"
  ],
@@ -24,10 +25,17 @@
    "label": "Status",
    "options": "Not Started\nIn Progress\nCompleted",
    "reqd": 1
+  },
+  {
+   "fieldname": "project_timeline",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project Timeline",
+   "options": "Project Timeline"
   }
  ],
  "istable": 1,
- "modified": "2019-12-12 21:01:03.976634",
+ "modified": "2019-12-13 02:24:30.244923",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Stage Detail",

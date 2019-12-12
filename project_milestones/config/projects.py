@@ -10,13 +10,13 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Project Type",
-					"description": _("Define Project type."),
+					"name": "Project Timeline",
+					"description": _("Define Project Timeline Category."),
 				},
 				{
 					"type": "doctype",
 					"name": "Project Stage",
-					"description": _("Define Project stage."),
+					"description": _("Define Project Stage."),
 				},
 			]
 		}

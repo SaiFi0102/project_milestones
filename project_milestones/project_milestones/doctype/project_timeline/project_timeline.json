@@ -1,0 +1,62 @@
+{
+ "autoname": "field:project_timeline_name",
+ "creation": "2019-12-13 01:39:21.721272",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "project_timeline_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "project_timeline_name",
+   "fieldtype": "Data",
+   "label": "Project Timeline Name",
+   "unique": 1
+  }
+ ],
+ "modified": "2019-12-13 01:39:21.721272",
+ "modified_by": "Administrator",
+ "module": "Project Milestones",
+ "name": "Project Timeline",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

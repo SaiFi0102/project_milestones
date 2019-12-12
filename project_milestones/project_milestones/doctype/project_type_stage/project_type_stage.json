@@ -4,6 +4,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "project_timeline",
   "project_stage"
  ],
  "fields": [
@@ -12,11 +13,20 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Project Stage",
-   "options": "Project Stage"
+   "options": "Project Stage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project_timeline",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project Timeline",
+   "options": "Project Timeline",
+   "reqd": 1
   }
  ],
  "istable": 1,
- "modified": "2019-12-12 21:21:42.429602",
+ "modified": "2019-12-13 01:46:37.943188",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Type Stage",
