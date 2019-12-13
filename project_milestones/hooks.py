@@ -11,6 +11,19 @@ app_color = "blue"
 app_email = "saif@mocha.pk"
 app_license = "MIT"
 
+doctype_js = {
+	"Project": "public/js/project.js"
+}
+
+doc_events = {
+	"Project": {
+		"validate": "project_milestones.project_milestones.project.validate",
+	},
+	"Project Type": {
+		"validate": "project_milestones.project_milestones.project_type.validate",
+	}
+}
+
 # Includes in <head>
 # ------------------
 
