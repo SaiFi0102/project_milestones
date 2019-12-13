@@ -6,6 +6,7 @@
  "field_order": [
   "project_timeline",
   "project_stage",
+  "column_break_3",
   "stage_status"
  ],
  "fields": [
@@ -13,7 +14,7 @@
    "fieldname": "project_stage",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Project Stage",
+   "label": "Stage",
    "options": "Project Stage",
    "reqd": 1
   },
@@ -30,12 +31,16 @@
    "fieldname": "project_timeline",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Project Timeline",
+   "label": "Timeline",
    "options": "Project Timeline"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
   }
  ],
  "istable": 1,
- "modified": "2019-12-13 02:24:30.244923",
+ "modified": "2019-12-13 20:11:12.234826",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Stage Detail",

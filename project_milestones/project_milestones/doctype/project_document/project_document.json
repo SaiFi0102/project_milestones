@@ -4,16 +4,20 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "project_timeline",
   "document_name",
+  "project_timeline",
   "project_stage",
+  "column_break_4",
   "client_view",
-  "attached_document",
-  "document_status"
+  "document_status",
+  "section_break_7",
+  "submitted_attachment",
+  "column_break_9",
+  "reviewed_attachment"
  ],
  "fields": [
   {
-   "columns": 2,
+   "columns": 3,
    "fieldname": "document_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -37,13 +41,6 @@
    "label": "Client View"
   },
   {
-   "columns": 1,
-   "fieldname": "attached_document",
-   "fieldtype": "Attach",
-   "in_list_view": 1,
-   "label": "Attachment"
-  },
-  {
    "columns": 2,
    "default": "Awaiting Upload",
    "fieldname": "document_status",
@@ -60,10 +57,32 @@
    "in_list_view": 1,
    "label": "Timeline",
    "options": "Project Timeline"
+  },
+  {
+   "fieldname": "submitted_attachment",
+   "fieldtype": "Attach",
+   "label": "Submitted Attachment"
+  },
+  {
+   "fieldname": "reviewed_attachment",
+   "fieldtype": "Attach",
+   "label": "Reviewed Attachment"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
   }
  ],
  "istable": 1,
- "modified": "2019-12-13 02:20:45.990374",
+ "modified": "2019-12-13 20:06:36.900578",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Document",
