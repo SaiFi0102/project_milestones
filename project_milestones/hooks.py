@@ -18,9 +18,22 @@ doctype_js = {
 doc_events = {
 	"Project": {
 		"validate": "project_milestones.project_milestones.project.validate",
+		"onload": "project_milestones.project_milestones.project.onload"
 	},
 	"Project Type": {
 		"validate": "project_milestones.project_milestones.project_type.validate",
+	},
+	"Purchase Order": {
+		"on_submit": "project_milestones.project_milestones.project.on_po_submit_cancel",
+		"on_cancel": "project_milestones.project_milestones.project.on_po_submit_cancel",
+	},
+	"Payment Entry": {
+		"on_submit": "project_milestones.project_milestones.project.on_pe_submit_cancel",
+		"on_cancel": "project_milestones.project_milestones.project.on_pe_submit_cancel",
+	},
+	"Journal Entry": {
+		"on_submit": "project_milestones.project_milestones.project.on_jv_submit_cancel",
+		"on_cancel": "project_milestones.project_milestones.project.on_jv_submit_cancel",
 	}
 }
 

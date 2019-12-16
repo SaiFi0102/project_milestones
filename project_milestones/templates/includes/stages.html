@@ -1,6 +1,6 @@
 {% macro display_stages(stages, timeline) %}
     {% set width = frappe.utils.flt(100 / (stages|len or 1)) %}
-    <div class="card mt-3">
+    <div class="card mb-3">
         <div class="card-header">{{ _("{0} Stages").format(timeline) }}</div>
         <div class="card-body">
             <div class="stage">
@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    <div class="card mt-3">
+    <div class="card mb-3">
         <div class="card-header">{{ _("{0} Documents").format(timeline) }}</div>
         <div class="card-body">
             <table class="table" data-timeline="{{ timeline }}">

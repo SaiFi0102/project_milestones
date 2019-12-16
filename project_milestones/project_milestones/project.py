@@ -10,6 +10,11 @@ def validate(self, method):
 	validate_document_status(self)
 	set_document_status(self)
 	validate_stage_status(self)
+	update_costing(self)
+
+
+def onload(self, method):
+	update_costing(self)
 
 
 def check_duplicates_stages(self):
@@ -98,6 +103,63 @@ def get_timeline_stage_map(self):
 			stages[0].selected = 1
 
 	return stage_map
+
+
+def on_po_submit_cancel(self, method):
+	projects = []
+	for d in self.items:
+		if d.project:
+			projects.append(d.project)
+
+	for project_name in set(projects):
+		update_project_po_value(project_name)
+
+
+def on_pe_submit_cancel(self, method):
+	if self.project:
+		update_project_paid_amount(self.project)
+
+
+def on_jv_submit_cancel(self, method):
+	projects = []
+	for d in self.accounts:
+		if d.project:
+			projects.append(d.project)
+
+	for project_name in set(projects):
+		update_project_paid_amount(project_name)
+
+
+def update_costing(self):
+	self.total_po_value = update_project_po_value(self.name, db_update=False)
+	self.total_paid_amount = update_project_paid_amount(self.name, db_update=False)
+	self.total_pending_amount = self.total_po_value - self.total_paid_amount
+
+
+def update_project_po_value(project_name, db_update=True):
+	total_purchase_cost = frappe.db.sql("""select sum(base_net_amount)
+		from `tabPurchase Order Item` where project = %s and docstatus=1""", project_name)
+	total_purchase_cost = total_purchase_cost and total_purchase_cost[0][0] or 0
+
+	if db_update:
+		frappe.db.set_value("Project", project_name, "total_po_value", total_purchase_cost)
+
+	return total_purchase_cost
+
+
+def update_project_paid_amount(project_name, db_update=True):
+	pe_amount = frappe.db.sql("""select sum(base_paid_amount)
+		from `tabPayment Entry` where project = %s and docstatus=1""", project_name)
+	jv_amount = frappe.db.sql("""select sum(debit-credit)
+		from `tabJournal Entry Account` where project = %s and docstatus=1""", project_name)
+
+	total_paid_amount = pe_amount and pe_amount[0][0] or 0
+	total_paid_amount += jv_amount and jv_amount[0][0] or 0
+
+	if db_update:
+		frappe.db.set_value("Project", project_name, "total_paid_amount", total_paid_amount)
+
+	return total_paid_amount
 
 
 @frappe.whitelist()

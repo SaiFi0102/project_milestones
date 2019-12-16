@@ -21,6 +21,7 @@ def get_context(context):
 
 	# Get project doc context
 	context.doc = frappe.get_doc("Project", frappe.form_dict.project)
+	context.doc.run_method("onload")
 	context.stage_map = get_timeline_stage_map(context.doc)
 
 	# Title and breadcrumbs

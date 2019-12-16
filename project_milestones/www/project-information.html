@@ -1,20 +1,20 @@
 {% extends "templates/web.html" %}
 {% import "templates/includes/stages.html" as stages %}
 
-{% macro field_row(fieldname) %}
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label"><b>{{ _(doc.meta.get_field(fieldname).label) }}</b></label>
-		<div class="col-sm-9 form-control">{{ doc.get_formatted(fieldname) }}</div>
-	</div>
-{% endmacro %}
-
-{% macro display_section(title, content, is_fieldname=True, margin=True) %}
-	<div class="card{% if margin %} mt-3{% endif %}">
+{% macro display_section(title, content, is_fieldname=True, margin=True, two_columns=False) %}
+	<div class="card{% if margin %} mb-3{% endif %}">
 		<div class="card-header">{{ _(title) }}</div>
 		<div class="card-body">
 			{% if content is iterable and content is not string %}
 				{% for fieldname in content %}
-					{{ field_row(fieldname) }}
+					{% if not two_columns or loop.index % 2 != 0 %}
+					<div class="form-group row">
+					{% endif %}
+						<label class="col-sm-3 col-form-label"><b>{{ _(doc.meta.get_field(fieldname).label) }}</b></label>
+						<div class="{% if two_columns %}col-sm-3{% else %}col-sm-9{% endif %} form-control">{{ doc.get_formatted(fieldname) }}</div>
+					{% if not two_columns or loop.index % 2 == 0 %}
+					</div>
+					{% endif %}
 				{% endfor %}
 			{% elif is_fieldname %}
 				{{ doc.get_formatted(content) }}
@@ -73,8 +73,11 @@
 	]) }}
 
 	{{ display_section("Project Costing and Billing", [
-
-	]) }}
+		'total_po_value',
+		'total_pending_amount',
+		'total_paid_amount',
+		'total_purchase_cost',
+	], two_columns=True) }}
 
 	{{ display_section("Supplier Payment", [
 
