@@ -1,0 +1,88 @@
+{% extends "templates/web.html" %}
+{% import "templates/includes/stages.html" as stages %}
+
+{% macro field_row(fieldname) %}
+	<div class="form-group row">
+		<label class="col-sm-3 col-form-label"><b>{{ _(doc.meta.get_field(fieldname).label) }}</b></label>
+		<div class="col-sm-9 form-control">{{ doc.get_formatted(fieldname) }}</div>
+	</div>
+{% endmacro %}
+
+{% macro display_section(title, content, is_fieldname=True, margin=True) %}
+	<div class="card{% if margin %} mt-3{% endif %}">
+		<div class="card-header">{{ _(title) }}</div>
+		<div class="card-body">
+			{% if content is iterable and content is not string %}
+				{% for fieldname in content %}
+					{{ field_row(fieldname) }}
+				{% endfor %}
+			{% elif is_fieldname %}
+				{{ doc.get_formatted(content) }}
+			{% else %}
+				{{ content }}
+			{% endif %}
+		</div>
+	</div>
+{% endmacro %}
+
+{% block breadcrumbs %}
+	{% include 'templates/includes/breadcrumbs.html' %}
+{% endblock %}
+
+{% block style %}
+	<style>
+		{% include 'templates/includes/stages.css' %}
+	</style>
+{% endblock %}
+
+{% block script %}
+<script>
+	window.cur_project = "{{ doc.name|replace('\"', '\\\"') }}";
+	{% include 'templates/includes/stages.js' %}
+</script>
+{% endblock %}
+
+{% block page_content %}
+	{{ display_section("Retail Unit and Tenant Information", [
+		'project_name',
+		'project_unit_number',
+		'project_location',
+		'project_type',
+		'brand',
+		'retailer',
+		'retail_delivery_manager',
+		'design_consultant',
+		'fitout_contractor',
+		'mep_contractor'
+	]) }}
+
+	{{ display_section("Authority Milestones", [
+		'authority_drawings_submittal',
+		'electrical_meter_request',
+		'authority_inspections_request'
+	]) }}
+
+	{{ display_section("Fit-Out and Trading Information", [
+		'handover_date',
+		'prestart_meeting',
+		'start_onsite',
+		'fitout_complete',
+		'merchandising_date',
+		'open_for_trading',
+		'closeout_completed'
+	]) }}
+
+	{{ display_section("Project Costing and Billing", [
+
+	]) }}
+
+	{{ display_section("Supplier Payment", [
+
+	]) }}
+
+	{{ display_section("General Notes", 'notes') }}
+
+	{% for timeline in stage_map %}
+		{{ stages.display_stages(stage_map[timeline], timeline) }}
+	{% endfor %}
+{% endblock %}

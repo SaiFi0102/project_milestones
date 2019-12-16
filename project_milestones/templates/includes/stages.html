@@ -1,0 +1,46 @@
+{% macro display_stages(stages, timeline) %}
+    {% set width = frappe.utils.flt(100 / (stages|len or 1)) %}
+    <div class="card mt-3">
+        <div class="card-header">{{ _("{0} Stages").format(timeline) }}</div>
+        <div class="card-body">
+            <div class="stage">
+                <div class="stage-row" data-timeline="{{ timeline }}">
+                {% for d in stages %}
+                    <div class="stage-step" style="width: {{ width }}">
+                        <button type="button"
+                                class="btn btn-stage btn-{% if d.selected %}primary{% else %}default{% endif %}"
+                                data-timeline="{{ timeline }}"
+                                data-stage="{{ d.project_stage }}"
+                                data-selected="{{ frappe.utils.cint(d.selected) }}"
+                                data-status="{{ d.stage_status }}"
+                                title="{{ d.stage_status }}">
+                            {{ d.idx }}
+                        </button>
+                        <p>{{ d.project_stage }}</p>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">{{ _("{0} Documents").format(timeline) }}</div>
+        <div class="card-body">
+            <table class="table" data-timeline="{{ timeline }}">
+                <thead>
+                    <tr>
+                        <th data-timeline="{{ timeline }}" data-fieldname="idx" data-fieldtype="Int" style="text-align: center">{{ _("#") }}</th>
+                        <th data-timeline="{{ timeline }}" data-fieldname="document_name" data-fieldtype="Data">{{ _("Document Name") }}</th>
+                        <th data-timeline="{{ timeline }}" data-fieldname="client_view" data-fieldtype="Check" style="text-align: center">{{ _("Client View") }}</th>
+                        <th data-timeline="{{ timeline }}" data-fieldname="date" data-fieldtype="Date" style="text-align: center">{{ _("Date") }}</th>
+                        <th data-timeline="{{ timeline }}" data-fieldname="submitted_attachment" data-fieldtype="Attach" style="text-align: center">{{ _("Submitted Attachment") }}</th>
+                        <th data-timeline="{{ timeline }}" data-fieldname="reviewed_attachment" data-fieldtype="Attach" style="text-align: center">{{ _("Reviewed Attachment") }}</th>
+                        <th data-timeline="{{ timeline }}" data-fieldname="document_status" data-fieldtype="Data">{{ _("Status") }}</th>
+                    </tr>
+                </thead>
+                <tbody data-timeline="{{ timeline }}"></tbody>
+            </table>
+        </div>
+    </div>
+{% endmacro %}

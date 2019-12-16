@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from six import string_types
+from six import string_types, iteritems
 import json
 
 
@@ -72,6 +72,34 @@ def get_timeline_stage_document_map(self):
 	return document_map
 
 
+def get_timeline_stage_map(self):
+	stage_map = {}
+	for d in self.stages:
+		stage_map.setdefault(d.project_timeline, []).append(d.as_dict())
+
+	for stages in stage_map.values():
+		for i, stage in enumerate(stages):
+			stage.idx = i + 1
+
+	for timeline, stages in iteritems(stage_map):
+		last_in_progress = None
+		last_completed = None
+		for stage in stages:
+			if stage.stage_status == "In Progress":
+				last_in_progress = stage
+			elif stage.stage_status == "Completed":
+				last_completed = stage
+
+		if last_in_progress:
+			last_in_progress.selected = 1
+		elif last_completed:
+			last_completed.selected = 1
+		elif stages:
+			stages[0].selected = 1
+
+	return stage_map
+
+
 @frappe.whitelist()
 def get_stages_from_project_type(project_type):
 	if not project_type:
@@ -79,7 +107,7 @@ def get_stages_from_project_type(project_type):
 
 	doc = frappe.get_cached_doc("Project Type", project_type)
 	stages = [{"project_timeline": d.project_timeline, "project_stage": d.project_stage} for d in doc.stages]
-	stages = sorted(stages, key=lambda d: d.project_timeline)
+	stages = sorted(stages, key=lambda d: d.get('project_timeline'))
 	return stages
 
 
@@ -106,3 +134,14 @@ def get_documents_from_project_stages(project_stages):
 def get_project_stage_documents(project_stage):
 	doc = frappe.get_cached_doc("Project Stage", project_stage)
 	return [d.document_name for d in doc.documents]
+
+
+@frappe.whitelist()
+def get_timeline_stage_documents(project_name, timeline, stage):
+	project = frappe.get_doc("Project", project_name)
+
+	documents = project.get("documents", {"project_timeline": timeline, "project_stage": stage})
+	for i, d in enumerate(documents):
+		d.idx = i + 1
+
+	return documents
