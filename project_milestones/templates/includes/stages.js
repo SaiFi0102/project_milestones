@@ -84,9 +84,13 @@ project_milestones.make_table_field = function(field, value) {
 
 	if (field.fieldtype === "Check") {
 		$value = $(`<input type="checkbox" value="${cint(value)}" disabled="disabled" />`)
+	} else if(field.fieldtype === "Attach") {
+		$value = $(`<button type="button" class="btn btn-primary btn-sm"></button>`);
+		let label = value ? "View" : "Attach";
+		$value.text(label);
 	} else {
 		$value = $(`<div></div>`);
-		$value.text(cstr(value));
+		$value.text(__(value));
 	}
 
 	return $value;
