@@ -25,6 +25,31 @@
 	</div>
 {% endmacro %}
 
+{% macro suppier_payments_table() %}
+	<table class="table">
+		<thead>
+			<tr>
+				<th>{{ _("Supplier") }}</th>
+				<th>{{ _("PO Amount") }}</th>
+				<th>{{ _("Amount Billed") }}</th>
+				<th>{{ _("Amount Paid") }}</th>
+				<th>{{ _("Amount Pending") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for supplier in supplier_map %}
+			<tr>
+				<td>{{ supplier }}</td>
+				<td>{{ supplier_map[supplier].po_amount }}</td>
+				<td>{{ supplier_map[supplier].purchase_cost }}</td>
+				<td>{{ supplier_map[supplier].paid_amount }}</td>
+				<td>{{ supplier_map[supplier].outstanding_amount }}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+{% endmacro %}
+
 {% block breadcrumbs %}
 	{% include 'templates/includes/breadcrumbs.html' %}
 {% endblock %}
@@ -40,6 +65,8 @@
 	window.cur_project = "{{ doc.name|replace('\"', '\\\"') }}";
 	{% include 'templates/includes/stages.js' %}
 </script>
+<script src="assets/js/libs.min.js"></script>
+<script src="assets/js/control.min.js"></script>
 {% endblock %}
 
 {% block page_content %}
@@ -73,15 +100,13 @@
 	]) }}
 
 	{{ display_section("Project Costing and Billing", [
-		'total_po_value',
-		'total_pending_amount',
+		'total_po_amount',
+		'total_outstanding_amount',
 		'total_paid_amount',
 		'total_purchase_cost',
 	], two_columns=True) }}
 
-	{{ display_section("Supplier Payment", [
-
-	]) }}
+	{{ display_section("Supplier Payment", suppier_payments_table(), is_fieldname=False) }}
 
 	{{ display_section("General Notes", 'notes') }}
 

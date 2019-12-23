@@ -40,7 +40,7 @@ project_milestones.stages.load_documents = function(timeline, stage) {
 					$.each(field_list || [], function (i, field) {
 						let $td = $('<td></td>');
 						$td.data('fieldname', field.fieldname);
-						$td.append(project_milestones.make_table_field(field, document[field.fieldname]));
+						$td.append(project_milestones.make_table_field(field, document));
 
 						if (field.style) {
 							$td.attr('style', field.style);
@@ -78,16 +78,58 @@ project_milestones.stages.make_table_field_list = function(timeline) {
 	return field_list;
 };
 
+project_milestones.stages.attach_document = function(name, fieldname) {
+	return new frappe.ui.FileUploader({
+		doctype: "Project",
+		docname: cur_project,
+		disable_file_browser: 1,
+		on_success(file_doc) {
+			const { file_url, filename } = file_doc;
+			frappe.call({
+				method: "project_milestones.project_milestones.project.project_document_uploaded",
+				args: {
+					name: name,
+					fieldname: fieldname,
+					file_url: file_url
+				},
+				callback: function(r) {
+					if (!r.exc) {
+						// do something
+					}
+				}
+			});
+		}
+	});
+};
+
+project_milestones.stages.view_document = function(name, fieldname) {
+	var w = window.open("/api/method/project_milestones.project_milestones.project.download_document"
+		+ "?name=" + encodeURIComponent(name)
+		+ "&fieldname=" + encodeURIComponent(fieldname)
+	);
+	if(!w) {
+		frappe.msgprint(__("Please enable pop-ups"));
+	}
+};
+
 // Make table field name
-project_milestones.make_table_field = function(field, value) {
+project_milestones.make_table_field = function(field, doc) {
 	let $value;
+	const value = doc[field.fieldname];
 
 	if (field.fieldtype === "Check") {
 		$value = $(`<input type="checkbox" value="${cint(value)}" disabled="disabled" />`)
 	} else if(field.fieldtype === "Attach") {
 		$value = $(`<button type="button" class="btn btn-primary btn-sm"></button>`);
+
 		let label = value ? "View" : "Attach";
 		$value.text(label);
+
+		if (value) {
+			$value.click(() => project_milestones.stages.view_document(doc.name, field.fieldname));
+		} else {
+			$value.click(() => project_milestones.stages.attach_document(doc.name, field.fieldname));
+		}
 	} else {
 		$value = $(`<div></div>`);
 		$value.text(__(value));

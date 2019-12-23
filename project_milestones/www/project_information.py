@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from project_milestones.project_milestones.project import get_timeline_stage_map
+from project_milestones.project_milestones.project import get_timeline_stage_map,\
+	get_supplier_wise_project_order_billing_payment
 
 
 def get_context(context):
@@ -23,6 +24,7 @@ def get_context(context):
 	context.doc = frappe.get_doc("Project", frappe.form_dict.project)
 	context.doc.run_method("onload")
 	context.stage_map = get_timeline_stage_map(context.doc)
+	context.supplier_map = get_supplier_wise_project_order_billing_payment(context.doc.name)
 
 	# Title and breadcrumbs
 	context.title = _("Project Information")

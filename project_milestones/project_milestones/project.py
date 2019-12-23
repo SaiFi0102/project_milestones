@@ -1,7 +1,10 @@
 import frappe
 from frappe import _
+from frappe.utils import flt
 from six import string_types, iteritems
+from frappe.model.meta import get_field_precision
 import json
+import os
 
 
 def validate(self, method):
@@ -131,35 +134,118 @@ def on_jv_submit_cancel(self, method):
 
 
 def update_costing(self):
-	self.total_po_value = update_project_po_value(self.name, db_update=False)
-	self.total_paid_amount = update_project_paid_amount(self.name, db_update=False)
-	self.total_pending_amount = self.total_po_value - self.total_paid_amount
+	data = get_total_project_order_billing_payment(self.name)
+	self.update(data)
 
 
-def update_project_po_value(project_name, db_update=True):
-	total_purchase_cost = frappe.db.sql("""select sum(base_net_amount)
-		from `tabPurchase Order Item` where project = %s and docstatus=1""", project_name)
-	total_purchase_cost = total_purchase_cost and total_purchase_cost[0][0] or 0
-
-	if db_update:
-		frappe.db.set_value("Project", project_name, "total_po_value", total_purchase_cost)
-
-	return total_purchase_cost
+def update_project_po_value(project_name):
+	data = get_total_project_order_billing_payment(project_name)
+	frappe.db.set_value("Project", project_name, "total_po_amount", data.total_po_amount)
 
 
-def update_project_paid_amount(project_name, db_update=True):
-	pe_amount = frappe.db.sql("""select sum(base_paid_amount)
-		from `tabPayment Entry` where project = %s and docstatus=1""", project_name)
-	jv_amount = frappe.db.sql("""select sum(debit-credit)
-		from `tabJournal Entry Account` where project = %s and docstatus=1""", project_name)
+def update_project_paid_amount(project_name):
+	data = get_total_project_order_billing_payment(project_name)
+	frappe.db.set_value("Project", project_name, "total_paid_amount", data.total_paid_amount)
 
-	total_paid_amount = pe_amount and pe_amount[0][0] or 0
-	total_paid_amount += jv_amount and jv_amount[0][0] or 0
 
-	if db_update:
-		frappe.db.set_value("Project", project_name, "total_paid_amount", total_paid_amount)
+def get_total_project_order_billing_payment(project_name):
+	po_data, pinv_data = get_project_po_pinv_data(project_name)
 
-	return total_paid_amount
+	out = frappe._dict({
+		"total_purchase_cost": 0, "total_po_amount": 0, "total_paid_amount": 0, "total_outstanding_amount": 0
+	})
+
+	for d in po_data:
+		out.total_po_amount += d.base_net_total
+		out.total_paid_amount += d.paid_amount
+
+	for d in pinv_data:
+		out.total_purchase_cost += d.base_net_total
+		out.total_outstanding_amount += d.outstanding_amount
+		out.total_paid_amount += d.paid_amount
+
+	for field, value in iteritems(out):
+		precision = get_field_precision(frappe.get_meta("Project").get_field(field))
+		out[field] = flt(out[field], precision)
+
+	return out
+
+
+def get_supplier_wise_project_order_billing_payment(project_name):
+	po_data, pinv_data = get_project_po_pinv_data(project_name)
+
+	supplier_map = {}
+	for d in po_data + pinv_data:
+		supplier_map.setdefault(d.supplier, frappe._dict({
+			"supplier": d.supplier, "purchase_cost": 0, "po_amount": 0, "paid_amount": 0, "outstanding_amount": 0
+		}))
+
+	for d in po_data:
+		supplier_map[d.supplier].po_amount += d.base_net_total
+		supplier_map[d.supplier].paid_amount += d.paid_amount
+
+	for d in pinv_data:
+		supplier_map[d.supplier].billed_amount += d.base_net_total
+		supplier_map[d.supplier].outstanding_amount += d.outstanding_amount
+		supplier_map[d.supplier].paid_amount += d.paid_amount
+
+	for supplier_data in supplier_map.values():
+		for field, value in iteritems(supplier_data):
+			if field != "supplier":
+				precision = get_field_precision(frappe.get_meta("Project").get_field("total_" + field))
+				supplier_data[field] = flt(supplier_data[field], precision)
+
+	return supplier_map
+
+
+def get_project_po_pinv_data(project_name):
+	po_data = frappe.db.sql("""
+		select p.name, p.supplier, p.base_net_total, 0 as paid_amount
+		from `tabPurchase Order` p
+		where p.docstatus = 1
+			and exists(select name from `tabPurchase Order Item` i where i.parent = p.name and i.project = %s)
+	""", project_name, as_dict=1)
+
+	po_map = {}
+	for d in po_data:
+		po_map[d.name] = d
+
+	pinv_data = frappe.db.sql("""
+		select p.name, p.supplier, p.base_net_total, 0 as paid_amount, p.outstanding_amount
+		from `tabPurchase Invoice` p
+		where p.docstatus = 1
+			and exists(select name from `tabPurchase Invoice Item` i where i.parent = p.name and i.project = %s)
+	""", project_name, as_dict=1)
+
+	pinv_map = {}
+	for d in pinv_data:
+		pinv_map[d.name] = d
+
+	unique_pos = [d.name for d in po_data]
+	unique_pinvs = [d.name for d in pinv_data]
+
+	gle_against_po = frappe.db.sql("""
+		select against_voucher, sum(debit-credit) as amount
+		from `tabGL Entry`
+		where against_voucher_type = 'Purchase Order' and against_voucher in %s
+		group by against_voucher
+	""", [unique_pos], as_dict=1) if unique_pos else []
+
+	for d in gle_against_po:
+		po_map[d.against_voucher].paid_amount += d.amount
+
+	gle_against_pinv = frappe.db.sql("""
+		select against_voucher, sum(debit-credit) as amount
+		from `tabGL Entry`
+		where against_voucher_type = 'Purchase Invoice' and against_voucher in %s
+			and (voucher_type, voucher_no) != (against_voucher_type, against_voucher)
+		group by against_voucher
+	""", [unique_pinvs], as_dict=1) if unique_pinvs else []
+
+	for d in gle_against_pinv:
+		pinv_map[d.against_voucher].paid_amount += d.amount
+
+	return po_data, pinv_data
 
 
 @frappe.whitelist()
@@ -207,3 +293,66 @@ def get_timeline_stage_documents(project_name, timeline, stage):
 		d.idx = i + 1
 
 	return documents
+
+
+@frappe.whitelist()
+def download_document(name, fieldname):
+	if fieldname not in ['submitted_attachment', 'reviewed_attachment']:
+		frappe.throw(_("Incorrect Field Name"))
+
+	project_name, file_url = frappe.db.get_value("Project Document", name, ['parent', fieldname])
+
+	project_user = frappe.db.get_value("Project User",
+		{"parent": project_name, "user": frappe.session.user}, ["user", "view_attachments"], as_dict=True)
+	if frappe.session.user != 'Administrator' and (not project_user or frappe.session.user == 'Guest'):
+		raise frappe.PermissionError
+
+	file_doc = frappe.get_doc("File", {"file_url": file_url})
+	frappe.local.response.filename = os.path.basename(file_url)
+	frappe.local.response.filecontent = file_doc.get_content()
+
+	if file_url.endswith('.pdf'):
+		frappe.local.response.type = "pdf"
+	else:
+		frappe.local.response.type = "download"
+
+'''
+pe_unallocated_amount = frappe.db.sql("""
+		select party, sum(unallocated_amount)
+		from `tabPayment Entry`
+		where docstatus=1 and party_type='Supplier' and project = %s
+		group by party
+	""", project_name)
+	pe_against_po_amount = frappe.db.sql("""
+		select pe.party, sum(pref.allocated_amount)
+		from `tabPayment Entry Reference` pref
+		inner join `tabPayment Entry` pe on pe.name = pref.parent
+		where pe.docstatus=1 and pe.party_type='Supplier'
+			and pref.reference_doctype = 'Purchase Order' and pref.reference_name in %s
+		group by party
+	""", [unique_pos])
+	pe_against_pinv_amount = frappe.db.sql("""
+		select pe.party, sum(pref.allocated_amount)
+		from `tabPayment Entry Reference` pref
+		inner join `tabPayment Entry` pe on pe.name = pref.parent
+		where pe.docstatus=1 and pe.party_type='Supplier'
+			and pref.reference_doctype = 'Purchase Invoice' and pref.reference_name in %s
+		group by party
+	""", [unique_pinvs])
+
+	jv_unallocated_amount = frappe.db.sql("""
+		select party, sum(debit-credit)
+		from `tabJournal Entry Account`
+		where docstatus=1 and party_type='Supplier' and ifnull(reference_name, '') = '' and project = %s
+	""", project_name)
+	jv_against_po_amount = frappe.db.sql("""
+		select party, sum(debit-credit)
+		from `tabJournal Entry Account`
+		where docstatus=1 and party_type='Supplier' and reference_type = 'Purchase Order' and reference_name in %s
+	""", [unique_pos])
+	jv_against_pinv_amount = frappe.db.sql("""
+		select party, sum(debit-credit)
+		from `tabJournal Entry Account`
+		where docstatus=1 and party_type='Supplier' and reference_type = 'Purchase Invoice' and reference_name in %s
+	""", [unique_pinvs])
+'''
