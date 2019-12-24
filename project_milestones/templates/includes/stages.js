@@ -84,7 +84,14 @@ project_milestones.make_table_field = function(field, doc) {
 	const value = doc[field.fieldname];
 
 	if (field.fieldtype === "Check") {
-		$value = $(`<input type="checkbox" value="${cint(value)}" disabled="disabled" />`)
+		$value = $(`<input type="checkbox" />`);
+		if (cint(value)) {
+			$value.attr('checked', 1);
+		}
+		$value.change(function() {
+			project_milestones.stages.set_document_client_view(doc.name, this.checked,
+				doc.project_timeline, doc.project_stage)
+		});
 	} else if(field.fieldtype === "Attach") {
 		$value = $(`<button type="button" class="btn btn-primary btn-sm"></button>`);
 
@@ -130,6 +137,20 @@ project_milestones.stages.view_document = function(docname, fieldname) {
 	if(!w) {
 		frappe.msgprint(__("Please enable pop-ups"));
 	}
+};
+
+project_milestones.stages.set_document_client_view = function(docname, value, timeline, stage) {
+	frappe.call({
+		method: "project_milestones.project_milestones.project.set_document_client_view",
+		args: {
+			docname: docname,
+			value: cint(value)
+		},
+		freeze: 1,
+		callback: function(r) {
+			project_milestones.stages.load_documents(timeline, stage);
+		}
+	});
 };
 
 // Handle stage button click

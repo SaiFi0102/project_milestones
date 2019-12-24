@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, cint
 from six import string_types, iteritems
 from frappe.model.meta import get_field_precision
 import json
@@ -349,7 +349,29 @@ def upload_document():
 	document_row.set(fieldname + "_date", frappe.utils.today())
 	project.save()
 
+	frappe.msgprint(_("{0} Document {1} {2} has been successfully uploaded").format(document_row.project_timeline,
+		frappe.bold(document_row.document_name), frappe.unscrub(fieldname)))
+
 	return file_doc
+
+
+@frappe.whitelist()
+def set_document_client_view(docname, value):
+	project_name = frappe.db.get_value("Project Document", docname, 'parent')
+	check_project_user_permission(project_name)
+
+	project = frappe.get_doc("Project", project_name)
+	document_row = project.get("documents", filters={"name": docname})
+	if not document_row:
+		frappe.throw(_("Invalid Document Selected"))
+
+	document_row = document_row[0]
+	document_row.client_view = cint(value)
+	project.save()
+
+	allowed_disallowed = "allowed" if document_row.client_view else "disallowed"
+	frappe.msgprint(_("{0} Document {1} is now {2} for client view").format(document_row.project_timeline,
+		frappe.bold(document_row.document_name), allowed_disallowed))
 
 
 def validate_document_fieldname(fieldname):
