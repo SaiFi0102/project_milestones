@@ -1,0 +1,87 @@
+<div class="comment-view mb-4">
+	{% if comment_text %}
+	<div class="comment-header mb-4">{{ comment_text }}</div>
+	{% endif %}
+	{% if not comment_list %}
+	<div class="no-comment">
+		<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
+	</div>
+	{% endif %}
+
+	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
+        {% for comment in comment_list %}
+        <div class="my-3">
+            {% include "templates/includes/comments/comment.html" %}
+        </div>
+		{% endfor %}
+	</div>
+</div>
+
+{% if not is_communication %}
+<div class="add-comment-section">
+	<div class="comment-form-wrapper">
+		<a class="add-comment btn btn-light btn-sm">{{ _("Add Comment") }}</a>
+			<div style="display: none;" id="comment-form">
+			<p>{{ _("Leave a Comment") }}</p>
+			<div class="alert" style="display:none;"></div>
+			<form>
+				<fieldset>
+					<p><textarea class="form-control" name="comment" rows=7
+						placeholder="{{ _("Comment") }}"></textarea></p>
+                        <button class="btn btn-primary btn-sm" id="submit-comment" style="margin-top:10px">
+                            {{ _("Submit") }}</button>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+</div>
+{% endif %}
+<script>
+	frappe.ready(function() {
+		var n_comments = $(".comment-row").length;
+
+		if(n_comments) {
+			$(".no_comment").toggle(false);
+		}
+		$(".add-comment").click(function() {
+			$(this).toggle(false);
+		 	$("#comment-form").toggle();
+			$("#comment-form textarea").val("");
+        });
+
+		$("#submit-comment").click(function() {
+			var args = {
+				project_name: cur_project,
+				comment: $("[name='comment']").val(),
+			};
+
+			if(!args.comment) {
+				frappe.msgprint(`{{ _("Please enter a comment.") }}`);
+				return false;
+			}
+
+			frappe.call({
+				btn: this,
+				type: "POST",
+				method: "project_milestones.project_milestones.project.add_comment",
+				args: args,
+				callback: function(r) {
+					if(r.exc) {
+						if(r._server_messages)
+							frappe.msgprint(r._server_messages);
+					} else {
+						if (r.message) {
+							$(r.message).appendTo("#comment-list");
+						}
+						$(".no-comment, .add-comment").toggle(false);
+						$("#comment-form").toggle();
+					}
+					$(".add-comment").text(__("Add Another Comment"));
+					$(".add-comment").toggle();
+				}
+			})
+
+			return false;
+		})
+	});
+</script>

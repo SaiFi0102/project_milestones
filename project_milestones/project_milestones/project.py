@@ -3,6 +3,7 @@ from frappe import _
 from frappe.utils import flt, cint
 from six import string_types, iteritems
 from frappe.model.meta import get_field_precision
+from frappe.utils import get_fullname
 import json
 import os
 
@@ -372,6 +373,25 @@ def set_document_client_view(docname, value):
 	allowed_disallowed = "allowed" if document_row.client_view else "disallowed"
 	frappe.msgprint(_("{0} Document {1} is now {2} for client view").format(document_row.project_timeline,
 		frappe.bold(document_row.document_name), allowed_disallowed))
+
+
+@frappe.whitelist()
+def add_comment(project_name, comment):
+	check_project_user_permission(project_name)
+
+	comment_doc = frappe.get_doc({
+		"doctype": "Comment",
+		'comment_type': "Comment",
+		"comment_email": frappe.session.user,
+		"comment_by": get_fullname(frappe.session.user),
+		"reference_doctype": "Project",
+		"reference_name": project_name,
+		"content": comment,
+		"published": 1
+	}).insert(ignore_permissions=True)
+
+	template = frappe.get_template("templates/includes/comments/comment.html")
+	return template.render({"comment": comment_doc.as_dict()})
 
 
 def validate_document_fieldname(fieldname):
