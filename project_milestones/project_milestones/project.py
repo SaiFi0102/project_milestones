@@ -296,16 +296,11 @@ def get_timeline_stage_documents(project_name, timeline, stage):
 
 
 @frappe.whitelist()
-def download_document(name, fieldname):
-	if fieldname not in ['submitted_attachment', 'reviewed_attachment']:
-		frappe.throw(_("Incorrect Field Name"))
+def download_document(docname, fieldname):
+	validate_document_fieldname(fieldname)
 
-	project_name, file_url = frappe.db.get_value("Project Document", name, ['parent', fieldname])
-
-	project_user = frappe.db.get_value("Project User",
-		{"parent": project_name, "user": frappe.session.user}, ["user", "view_attachments"], as_dict=True)
-	if frappe.session.user != 'Administrator' and (not project_user or frappe.session.user == 'Guest'):
-		raise frappe.PermissionError
+	project_name, file_url = frappe.db.get_value("Project Document", docname, ['parent', fieldname])
+	check_project_user_permission(project_name)
 
 	file_doc = frappe.get_doc("File", {"file_url": file_url})
 	frappe.local.response.filename = os.path.basename(file_url)
@@ -315,6 +310,61 @@ def download_document(name, fieldname):
 		frappe.local.response.type = "pdf"
 	else:
 		frappe.local.response.type = "download"
+
+
+@frappe.whitelist()
+def upload_document():
+	docname = frappe.form_dict.docname
+	fieldname = frappe.form_dict.folder
+
+	validate_document_fieldname(fieldname)
+
+	project_name = frappe.db.get_value("Project Document", docname, 'parent')
+	check_project_user_permission(project_name)
+
+	file_doc = frappe.get_doc({
+		"doctype": "File",
+		"attached_to_doctype": "Project",
+		"attached_to_name": project_name,
+		"folder": 'Home/Project Documents',
+		"file_name": frappe.local.uploaded_filename,
+		"file_url": frappe.form_dict.file_url,
+		"is_private": 1,
+		"content": frappe.local.uploaded_file
+	})
+	file_doc.save()
+
+	file_url = file_doc.file_url
+
+	project = frappe.get_doc("Project", project_name)
+	document_row = project.get("documents", filters={"name": docname})
+	if not document_row:
+		frappe.throw(_("Invalid Document Selected"))
+
+	document_row = document_row[0]
+	if document_row.get(fieldname):
+		frappe.throw(_("Document is already uploaded"))
+
+	document_row.set(fieldname, file_url)
+	document_row.set(fieldname + "_date", frappe.utils.today())
+	project.save()
+
+	return file_doc
+
+
+def validate_document_fieldname(fieldname):
+	if fieldname not in ['submitted_attachment', 'reviewed_attachment']:
+		frappe.throw(_("Incorrect Field Name"))
+
+
+def check_project_user_permission(project_name, user=None):
+	if not user:
+		user = frappe.session.user
+
+	project_user = frappe.db.get_value("Project User",
+		{"parent": project_name, "user": user}, ["user", "view_attachments"], as_dict=True)
+	if frappe.session.user != 'Administrator' and (not project_user or frappe.session.user == 'Guest'):
+		raise frappe.PermissionError
 
 '''
 pe_unallocated_amount = frappe.db.sql("""

@@ -78,40 +78,6 @@ project_milestones.stages.make_table_field_list = function(timeline) {
 	return field_list;
 };
 
-project_milestones.stages.attach_document = function(name, fieldname) {
-	return new frappe.ui.FileUploader({
-		doctype: "Project",
-		docname: cur_project,
-		disable_file_browser: 1,
-		on_success(file_doc) {
-			const { file_url, filename } = file_doc;
-			frappe.call({
-				method: "project_milestones.project_milestones.project.project_document_uploaded",
-				args: {
-					name: name,
-					fieldname: fieldname,
-					file_url: file_url
-				},
-				callback: function(r) {
-					if (!r.exc) {
-						// do something
-					}
-				}
-			});
-		}
-	});
-};
-
-project_milestones.stages.view_document = function(name, fieldname) {
-	var w = window.open("/api/method/project_milestones.project_milestones.project.download_document"
-		+ "?name=" + encodeURIComponent(name)
-		+ "&fieldname=" + encodeURIComponent(fieldname)
-	);
-	if(!w) {
-		frappe.msgprint(__("Please enable pop-ups"));
-	}
-};
-
 // Make table field name
 project_milestones.make_table_field = function(field, doc) {
 	let $value;
@@ -128,14 +94,42 @@ project_milestones.make_table_field = function(field, doc) {
 		if (value) {
 			$value.click(() => project_milestones.stages.view_document(doc.name, field.fieldname));
 		} else {
-			$value.click(() => project_milestones.stages.attach_document(doc.name, field.fieldname));
+			$value.click(() => project_milestones.stages.attach_document(doc.name, field.fieldname,
+				doc.project_timeline, doc.project_stage));
 		}
+	} else if (field.fieldtype === "Date") {
+		const formatted_date = frappe.format(value, {fieldtype: "Date"});
+		$value = $(`<div></div>`);
+		$value.text(formatted_date);
 	} else {
 		$value = $(`<div></div>`);
 		$value.text(__(value));
 	}
 
 	return $value;
+};
+
+project_milestones.stages.attach_document = function(docname, fieldname, timeline, stage) {
+	return new frappe.ui.FileUploader({
+		doctype: "Project Document",
+		docname: docname,
+		folder: fieldname,
+		method: "project_milestones.project_milestones.project.upload_document",
+		disable_file_browser: 1,
+		on_success(file_doc) {
+			project_milestones.stages.load_documents(timeline, stage);
+		}
+	});
+};
+
+project_milestones.stages.view_document = function(docname, fieldname) {
+	var w = window.open("/api/method/project_milestones.project_milestones.project.download_document"
+		+ "?docname=" + encodeURIComponent(docname)
+		+ "&fieldname=" + encodeURIComponent(fieldname)
+	);
+	if(!w) {
+		frappe.msgprint(__("Please enable pop-ups"));
+	}
 };
 
 // Handle stage button click

@@ -12,8 +12,10 @@
   "document_status",
   "section_break_7",
   "submitted_attachment",
+  "submitted_attachment_date",
   "column_break_9",
-  "reviewed_attachment"
+  "reviewed_attachment",
+  "reviewed_attachment_date"
  ],
  "fields": [
   {
@@ -80,10 +82,22 @@
   {
    "fieldname": "column_break_9",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "submitted_attachment_date",
+   "fieldtype": "Date",
+   "label": "Submitted Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reviewed_attachment_date",
+   "fieldtype": "Date",
+   "label": "Reviewed Date",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2019-12-13 21:10:12.038738",
+ "modified": "2019-12-24 10:58:02.125881",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Document",

@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from project_milestones.project_milestones.project import get_timeline_stage_map,\
-	get_supplier_wise_project_order_billing_payment
+	get_supplier_wise_project_order_billing_payment, check_project_user_permission
 
 
 def get_context(context):
@@ -15,10 +15,7 @@ def get_context(context):
 		raise frappe.Redirect
 
 	# Check project user permission
-	project_user = frappe.db.get_value("Project User",
-		{"parent": frappe.form_dict.project, "user": frappe.session.user}, ["user", "view_attachments"], as_dict=True)
-	if frappe.session.user != 'Administrator' and (not project_user or frappe.session.user == 'Guest'):
-		raise frappe.PermissionError
+	check_project_user_permission(frappe.form_dict.project)
 
 	# Get project doc context
 	context.doc = frappe.get_doc("Project", frappe.form_dict.project)
