@@ -5,7 +5,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "project_timeline_name"
+  "project_timeline_name",
+  "allowed_roles"
  ],
  "fields": [
   {
@@ -13,9 +14,15 @@
    "fieldtype": "Data",
    "label": "Project Timeline Name",
    "unique": 1
+  },
+  {
+   "fieldname": "allowed_roles",
+   "fieldtype": "Table",
+   "label": "Allowed Roles",
+   "options": "Has Role"
   }
  ],
- "modified": "2019-12-13 01:39:21.721272",
+ "modified": "2019-12-26 15:58:13.738965",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Timeline",

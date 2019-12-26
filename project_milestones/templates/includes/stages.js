@@ -67,11 +67,12 @@ project_milestones.stages.make_table_field_list = function(timeline) {
 	$ths.each(function (i, th) {
 		const fieldname = $(th).data('fieldname');
 		const fieldtype = $(th).data('fieldtype');
+		const canwrite = $(th).data('canwrite');
 		const style = $(th).attr('style');
 		const classStr = $(th).attr('class');
 
 		if (fieldname) {
-			field_list.push({fieldname: fieldname, fieldtype: fieldtype, style: style, class: classStr});
+			field_list.push({fieldname: fieldname, fieldtype: fieldtype, style: style, class: classStr, canwrite: canwrite});
 		}
 	});
 
@@ -88,21 +89,31 @@ project_milestones.make_table_field = function(field, doc) {
 		if (cint(value)) {
 			$value.attr('checked', 1);
 		}
-		$value.change(function() {
-			project_milestones.stages.set_document_client_view(doc.name, this.checked,
-				doc.project_timeline, doc.project_stage)
-		});
-	} else if(field.fieldtype === "Attach") {
-		$value = $(`<button type="button" class="btn btn-primary btn-sm"></button>`);
 
-		let label = value ? "View" : "Attach";
-		$value.text(label);
+		if (cint(field.canwrite)) {
+			$value.change(function () {
+				project_milestones.stages.set_document_client_view(doc.name, this.checked,
+					doc.project_timeline, doc.project_stage)
+			});
+		} else {
+			$value.attr("disabled", 1);
+		}
+	} else if(field.fieldtype === "Attach") {
+		$value = $(`<button type="button" class="btn btn-sm"></button>`);
 
 		if (value) {
+			$value.text(__("View"));
+			$value.addClass('btn-info');
 			$value.click(() => project_milestones.stages.view_document(doc.name, field.fieldname));
-		} else {
+		} else if (cint(field.canwrite)) {
+			$value.text(__("Attach"));
+			$value.addClass('btn-primary');
 			$value.click(() => project_milestones.stages.attach_document(doc.name, field.fieldname,
 				doc.project_timeline, doc.project_stage));
+		} else {
+			$value.text(__("Not Attached"));
+			$value.addClass('btn-default');
+			$value.attr("disabled", 1);
 		}
 	} else if (field.fieldtype === "Date") {
 		const formatted_date = frappe.format(value, {fieldtype: "Date"});

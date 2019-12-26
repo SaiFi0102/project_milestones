@@ -75,10 +75,20 @@ def get_timeline_stage_document_map(self):
 	return document_map
 
 
-def get_timeline_stage_map(self):
+def get_timeline_stage_map(self, ignore_permissions=False):
 	stage_map = {}
 	for d in self.stages:
 		stage_map.setdefault(d.project_timeline, []).append(d.as_dict())
+
+	if not ignore_permissions:
+		to_remove = []
+		for project_timeline in stage_map.keys():
+			print(project_timeline)
+			if not has_project_timeline_permission(project_timeline):
+				to_remove.append(project_timeline)
+
+		for project_timeline in to_remove:
+			del stage_map[project_timeline]
 
 	for stages in stage_map.values():
 		for i, stage in enumerate(stages):
@@ -294,8 +304,11 @@ def get_timeline_stage_documents(project_name, timeline, stage):
 def download_document(docname, fieldname):
 	validate_document_fieldname(fieldname)
 
-	project_name, file_url = frappe.db.get_value("Project Document", docname, ['parent', fieldname])
+	project_name, project_timeline, file_url = frappe.db.get_value("Project Document", docname,
+		['parent', 'project_timeline', fieldname])
+
 	check_project_user_permission(project_name)
+	check_project_timeline_permission(project_timeline)
 
 	file_doc = frappe.get_doc("File", {"file_url": file_url})
 	frappe.local.response.filename = os.path.basename(file_url)
@@ -314,8 +327,10 @@ def upload_document():
 
 	validate_document_fieldname(fieldname)
 
-	project_name = frappe.db.get_value("Project Document", docname, 'parent')
+	project_name, project_timeline = frappe.db.get_value("Project Document", docname, ['parent', 'project_timeline'])
+
 	check_project_user_permission(project_name)
+	check_project_timeline_permission(project_timeline)
 
 	file_doc = frappe.get_doc({
 		"doctype": "File",
@@ -352,8 +367,10 @@ def upload_document():
 
 @frappe.whitelist()
 def set_document_client_view(docname, value):
-	project_name = frappe.db.get_value("Project Document", docname, 'parent')
+	project_name, project_timeline = frappe.db.get_value("Project Document", docname, ['parent', 'project_timeline'])
+
 	check_project_user_permission(project_name)
+	check_project_timeline_permission(project_timeline)
 
 	project = frappe.get_doc("Project", project_name)
 	document_row = project.get("documents", filters={"name": docname})
@@ -401,6 +418,24 @@ def check_project_user_permission(project_name, user=None):
 		{"parent": project_name, "user": user}, ["user", "view_attachments"], as_dict=True)
 	if frappe.session.user != 'Administrator' and (not project_user or frappe.session.user == 'Guest'):
 		raise frappe.PermissionError
+
+
+def check_project_timeline_permission(project_timeline, user=None):
+	if not has_project_timeline_permission(project_timeline, user):
+		raise frappe.PermissionError
+
+
+def has_project_timeline_permission(project_timeline, user=None):
+	doc = frappe.get_cached_doc("Project Timeline", project_timeline)
+	allowed_roles = [d.role for d in doc.allowed_roles]
+	user_roles = frappe.get_roles(user)
+
+	for role in user_roles:
+		if role in allowed_roles:
+			return True
+
+	return False
+
 
 '''
 pe_unallocated_amount = frappe.db.sql("""

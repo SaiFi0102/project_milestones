@@ -1,12 +1,24 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.utils import cint
 from project_milestones.project_milestones.project import get_timeline_stage_map,\
 	get_supplier_wise_project_order_billing_payment, check_project_user_permission
 from frappe.website.utils import get_comment_list
 
 
 def get_context(context):
+	def has_field_permission(fieldname, parent=None, ptype='read'):
+		meta = context.doc.meta
+		if parent:
+			table_field = meta.get_field(parent)
+			table_dt = table_field.options
+
+			meta = frappe.get_meta(table_dt)
+
+		df = meta.get_field(fieldname)
+		return cint((df.permlevel or 0) == 0 or context.doc.has_permlevel_access_to(fieldname, df, ptype))
+
 	context.no_cache = 1
 	context.show_sidebar = True
 
@@ -24,6 +36,7 @@ def get_context(context):
 	context.stage_map = get_timeline_stage_map(context.doc)
 	context.supplier_map = get_supplier_wise_project_order_billing_payment(context.doc.name)
 	context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
+	context.has_field_permission = has_field_permission
 
 	# Title and breadcrumbs
 	context.title = _("Project Information")

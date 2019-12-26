@@ -1,12 +1,26 @@
 {% extends "templates/web.html" %}
 {% import "templates/includes/stages.html" as stages %}
 
-{% macro display_section(title, content, is_fieldname=True, margin=True, two_columns=False) %}
-	<div class="card{% if margin %} mb-3{% endif %}">
+{% macro display_section(title, content, is_fieldname=True, two_columns=False, permission_field=None) %}
+	{% set p = namespace(
+		override_field_permissions=not is_fieldname,
+		permitted_fields=[],
+		parent_permission=not permission_field or has_field_permission(permission_field)
+	) %}
+	{% if content is iterable and content is not string %}
+		{% for fieldname in content %}
+			{% if has_field_permission(fieldname) %}
+				{% set x = p.permitted_fields.append(fieldname) %}
+			{% endif %}
+		{% endfor %}
+	{% endif %}
+
+	{% if p.parent_permission and (p.permitted_fields or p.override_field_permissions) %}
+	<div class="card mb-3">
 		<div class="card-header">{{ _(title) }}</div>
 		<div class="card-body">
 			{% if content is iterable and content is not string %}
-				{% for fieldname in content %}
+				{% for fieldname in p.permitted_fields %}
 					{% if not two_columns or loop.index % 2 != 0 %}
 					<div class="form-group row">
 					{% endif %}
@@ -23,6 +37,7 @@
 			{% endif %}
 		</div>
 	</div>
+	{% endif %}
 {% endmacro %}
 
 {% macro suppier_payments_table() %}
@@ -108,7 +123,7 @@ $(".file-size").each(function() {
 		'authority_drawings_submittal',
 		'electrical_meter_request',
 		'authority_inspections_request'
-	]) }}
+	], permission_field='portal_authority_milestones_section') }}
 
 	{{ display_section("Fit-Out and Trading Information", [
 		'handover_date',
@@ -118,25 +133,27 @@ $(".file-size").each(function() {
 		'merchandising_date',
 		'open_for_trading',
 		'closeout_completed'
-	]) }}
+	], permission_field='portal_fitout_and_trading_info_section') }}
 
 	{{ display_section("Project Costing and Billing", [
 		'total_po_amount',
 		'total_outstanding_amount',
 		'total_paid_amount',
 		'total_purchase_cost',
-	], two_columns=True) }}
+	], two_columns=True, permission_field='project_details') }}
 
-	{{ display_section("Supplier Payment", suppier_payments_table(), is_fieldname=False) }}
+	{{ display_section("Supplier Payment", suppier_payments_table(), is_fieldname=False, permission_field='portal_supplier_payments_section') }}
 
-	{{ display_section("General Notes", 'notes') }}
+	{{ display_section("General Notes", 'notes', permission_field='notes') }}
 
 	{% for timeline in stage_map %}
-		{{ stages.display_stages(stage_map[timeline], timeline) }}
+		{{ stages.display_stages(stage_map[timeline], timeline, has_field_permission) }}
 	{% endfor %}
 
+	{% if has_field_permission('portal_comments_section') %}
 	<div class="comments">
 		<h3>{{ _("Comments") }}</h3>
 		{% include 'templates/includes/project_comments.html' %}
 	</div>
+	{% endif %}
 {% endblock %}

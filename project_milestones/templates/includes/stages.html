@@ -1,5 +1,5 @@
-{% macro display_stages(stages, timeline) %}
-    {% set width = frappe.utils.flt(100 / (stages|len or 1)) %}
+{% macro display_stages(stages, timeline, has_field_permission) %}
+    {% set width = frappe.utils.flt(100 / (stages|len or 1), 6) %}
     <div class="card mb-3">
         <div class="card-header">{{ _("{0} Stages").format(timeline) }}</div>
         <div class="card-body">
@@ -30,13 +30,32 @@
             <table class="table" data-timeline="{{ timeline }}">
                 <thead>
                     <tr>
-                        <th data-timeline="{{ timeline }}" data-fieldname="idx" data-fieldtype="Int" style="text-align: center">{{ _("#") }}</th>
-                        <th data-timeline="{{ timeline }}" data-fieldname="document_name" data-fieldtype="Data">{{ _("Document Name") }}</th>
-                        <th data-timeline="{{ timeline }}" data-fieldname="client_view" data-fieldtype="Check" style="text-align: center">{{ _("Client View") }}</th>
-                        <th data-timeline="{{ timeline }}" data-fieldname="submitted_attachment_date" data-fieldtype="Date" style="text-align: center">{{ _("Submitted Date") }}</th>
-                        <th data-timeline="{{ timeline }}" data-fieldname="submitted_attachment" data-fieldtype="Attach" style="text-align: center">{{ _("Submitted Attachment") }}</th>
-                        <th data-timeline="{{ timeline }}" data-fieldname="reviewed_attachment" data-fieldtype="Attach" style="text-align: center">{{ _("Reviewed Attachment") }}</th>
-                        <th data-timeline="{{ timeline }}" data-fieldname="document_status" data-fieldtype="Data">{{ _("Status") }}</th>
+                        <th data-timeline="{{ timeline }}" data-fieldname="idx" data-fieldtype="Int"
+                            style="text-align: center">{{ _("#") }}</th>
+                        {% if has_field_permission('document_name', 'documents') %}
+                            <th data-timeline="{{ timeline }}" data-fieldname="document_name" data-fieldtype="Data"
+                                >{{ _("Document Name") }}</th>
+                        {% endif %}
+                        {% if has_field_permission('client_view', 'documents') %}
+                            <th data-timeline="{{ timeline }}" data-fieldname="client_view" data-fieldtype="Check" data-canwrite="{{ has_field_permission('client_view', 'documents', 'write') }}"
+                                style="text-align: center">{{ _("Client View") }}</th>
+                        {% endif %}
+                        {% if has_field_permission('submitted_attachment_date', 'documents') %}
+                            <th data-timeline="{{ timeline }}" data-fieldname="submitted_attachment_date" data-fieldtype="Date"
+                                style="text-align: center">{{ _("Submitted Date") }}</th>
+                        {% endif %}
+                        {% if has_field_permission('submitted_attachment', 'documents') %}
+                            <th data-timeline="{{ timeline }}" data-fieldname="submitted_attachment" data-fieldtype="Attach" data-canwrite="{{ has_field_permission('submitted_attachment', 'documents', 'write') }}"
+                                style="text-align: center">{{ _("Submitted Attachment") }}</th>
+                        {% endif %}
+                        {% if has_field_permission('reviewed_attachment', 'documents') %}
+                            <th data-timeline="{{ timeline }}" data-fieldname="reviewed_attachment" data-fieldtype="Attach" data-canwrite="{{ has_field_permission('reviewed_attachment', 'documents', 'write') }}"
+                                style="text-align: center">{{ _("Reviewed Attachment") }}</th>
+                        {% endif %}
+                        {% if has_field_permission('document_status', 'documents') %}
+                            <th data-timeline="{{ timeline }}" data-fieldname="document_status" data-fieldtype="Data"
+                                >{{ _("Status") }}</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody data-timeline="{{ timeline }}"></tbody>
