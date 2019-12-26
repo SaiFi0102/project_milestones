@@ -43,18 +43,12 @@ def validate_document_status(self):
 			if not d.submitted_attachment:
 				frappe.throw(_("Cannot Approve {0} document {1} if document is not uploaded")
 					.format(d.project_timeline, frappe.bold(d.document_name)))
-			if not d.reviewed_attachment:
-				frappe.throw(_("Cannot Approve {0} document {1} if reviewed document is not uploaded")
-					.format(d.project_timeline, frappe.bold(d.document_name)))
 
 
 def set_document_status(self):
 	for d in self.documents:
 		if d.submitted_attachment:
-			if d.reviewed_attachment:
-				if d.document_status != "Approved":
-					d.document_status = "Pending Approval"
-			else:
+			if d.document_status != "Approved":
 				d.document_status = "Pending Approval"
 		else:
 			d.document_status = "Awaiting Upload"
