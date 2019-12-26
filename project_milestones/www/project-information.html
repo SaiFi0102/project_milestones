@@ -40,10 +40,10 @@
 		{% for supplier in supplier_map %}
 			<tr>
 				<td>{{ supplier }}</td>
-				<td>{{ supplier_map[supplier].po_amount }}</td>
-				<td>{{ supplier_map[supplier].purchase_cost }}</td>
-				<td>{{ supplier_map[supplier].paid_amount }}</td>
-				<td>{{ supplier_map[supplier].outstanding_amount }}</td>
+				<td>{{ frappe.format(supplier_map[supplier].po_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
+				<td>{{ frappe.format(supplier_map[supplier].purchase_cost, doc.meta.get_field('total_po_amount'), doc) }}</td>
+				<td>{{ frappe.format(supplier_map[supplier].paid_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
+				<td>{{ frappe.format(supplier_map[supplier].outstanding_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
 			</tr>
 		{% endfor %}
 		</tbody>
