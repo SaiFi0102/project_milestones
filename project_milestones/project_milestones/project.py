@@ -83,7 +83,6 @@ def get_timeline_stage_map(self, ignore_permissions=False):
 	if not ignore_permissions:
 		to_remove = []
 		for project_timeline in stage_map.keys():
-			print(project_timeline)
 			if not has_project_timeline_permission(project_timeline):
 				to_remove.append(project_timeline)
 
