@@ -158,7 +158,7 @@ project_milestones.stages.set_document_client_view = function(docname, value, ti
 			value: cint(value)
 		},
 		freeze: 1,
-		callback: function(r) {
+		always: function(r) {
 			project_milestones.stages.load_documents(timeline, stage);
 		}
 	});
