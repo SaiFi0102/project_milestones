@@ -386,6 +386,29 @@ def set_document_client_view(docname, value):
 
 
 @frappe.whitelist()
+def approve_document(docname):
+	project_name, project_timeline = frappe.db.get_value("Project Document", docname, ['parent', 'project_timeline'])
+
+	check_project_user_permission(project_name)
+	check_project_timeline_permission(project_timeline)
+
+	project = frappe.get_doc("Project", project_name)
+	document_row = project.get("documents", filters={"name": docname})
+	if not document_row:
+		frappe.throw(_("Invalid Document Selected"))
+
+	document_row = document_row[0]
+	if document_row.document_status == "Approved":
+		frappe.throw(_("Document is already approved"))
+
+	document_row.document_status = "Approved"
+	project.save()
+
+	frappe.msgprint(_("{0} Document {1} has been successfully <b>Approved</b>").format(document_row.project_timeline,
+		frappe.bold(document_row.document_name)))
+
+
+@frappe.whitelist()
 def add_comment(project_name, comment):
 	check_project_user_permission(project_name)
 

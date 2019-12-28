@@ -21,7 +21,7 @@ project_milestones.stages.load_documents = function(timeline, stage) {
 		return;
 	}
 
-	frappe.call({
+	return frappe.call({
 		method: "project_milestones.project_milestones.project.get_timeline_stage_documents",
 		args: {
 			project_name: cur_project,
@@ -115,9 +115,26 @@ project_milestones.make_table_field = function(field, doc) {
 			$value.addClass('btn-default');
 			$value.attr("disabled", 1);
 		}
+	} else if (field.fieldtype === "Status") {
+		if (value === "Pending Approval" && cint(field.canwrite)) {
+			$value = $(`<button type="button" class="btn btn-sm btn-primary"></button>`);
+			$value.text(__("Approve"));
+			$value.attr('title', __("Click to approve"));
+			$value.click(() => project_milestones.stages.approve_document(doc.name, doc.document_name,
+				doc.project_timeline, doc.project_stage));
+		} else {
+			$value = $(`<small></small>`);
+			$value.text(__(value));
+			if (value === "Approved") {
+				$value.css('color', 'darkgreen');
+				$value.css('font-weight', 'bold');
+			} else if (value === "Awaiting Upload") {
+				$value.css('color', 'brown');
+			}
+		}
 	} else if (field.fieldtype === "Date") {
 		const formatted_date = frappe.format(value, {fieldtype: "Date"});
-		$value = $(`<div></div>`);
+		$value = $(`<small></small>`);
 		$value.text(formatted_date);
 	} else {
 		$value = $(`<div></div>`);
@@ -140,6 +157,25 @@ project_milestones.stages.attach_document = function(docname, fieldname, timelin
 	});
 };
 
+project_milestones.stages.approve_document = function(docname, document_name, timeline, stage) {
+	return frappe.confirm(
+		__('Are you sure you want to approve {0} Document {1}? This action may not be reversible.',
+			[timeline, `<b>${document_name}</b>`]),
+		function(){
+			return frappe.call({
+				method: "project_milestones.project_milestones.project.approve_document",
+				args: {
+					docname: docname
+				},
+				freeze: 1,
+				always: function(r) {
+					project_milestones.stages.load_documents(timeline, stage);
+				}
+			});
+		},
+	);
+};
+
 project_milestones.stages.view_document = function(docname, fieldname) {
 	var w = window.open("/api/method/project_milestones.project_milestones.project.download_document"
 		+ "?docname=" + encodeURIComponent(docname)
@@ -151,7 +187,7 @@ project_milestones.stages.view_document = function(docname, fieldname) {
 };
 
 project_milestones.stages.set_document_client_view = function(docname, value, timeline, stage) {
-	frappe.call({
+	return frappe.call({
 		method: "project_milestones.project_milestones.project.set_document_client_view",
 		args: {
 			docname: docname,
