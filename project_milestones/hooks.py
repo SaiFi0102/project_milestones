@@ -81,7 +81,7 @@ doc_events = {
 # ------------
 
 # before_install = "project_milestones.install.before_install"
-# after_install = "project_milestones.install.after_install"
+after_install = "project_milestones.install.after_install"
 
 # Desk Notifications
 # ------------------
