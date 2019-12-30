@@ -292,7 +292,13 @@ def get_project_stage_documents(project_stage):
 def get_timeline_stage_documents(project_name, timeline, stage):
 	project = frappe.get_doc("Project", project_name)
 
-	documents = project.get("documents", {"project_timeline": timeline, "project_stage": stage})
+	filters = {"project_timeline": timeline, "project_stage": stage}
+
+	client_role = frappe.db.get_single_value("Project Milestones Settings", "client_role", cache=True)
+	if client_role and client_role in frappe.get_roles():
+		filters['client_view'] = 1
+
+	documents = project.get("documents", filters)
 	for i, d in enumerate(documents):
 		d.idx = i + 1
 
@@ -303,11 +309,12 @@ def get_timeline_stage_documents(project_name, timeline, stage):
 def download_document(docname, fieldname):
 	validate_document_fieldname(fieldname)
 
-	project_name, project_timeline, file_url = frappe.db.get_value("Project Document", docname,
-		['parent', 'project_timeline', fieldname])
+	project_name, project_timeline, client_view, file_url = frappe.db.get_value("Project Document", docname,
+		['parent', 'project_timeline', 'client_view', fieldname])
 
 	check_project_user_permission(project_name)
 	check_project_timeline_permission(project_timeline)
+	check_client_view_permission(client_view)
 
 	file_doc = frappe.get_doc("File", {"file_url": file_url})
 	frappe.local.response.filename = os.path.basename(file_url)
@@ -326,10 +333,12 @@ def upload_document():
 
 	validate_document_fieldname(fieldname)
 
-	project_name, project_timeline = frappe.db.get_value("Project Document", docname, ['parent', 'project_timeline'])
+	project_name, project_timeline, client_view = frappe.db.get_value("Project Document", docname,
+		['parent', 'project_timeline', 'client_view'])
 
 	check_project_user_permission(project_name)
 	check_project_timeline_permission(project_timeline)
+	check_client_view_permission(client_view)
 
 	file_doc = frappe.get_doc({
 		"doctype": "File",
@@ -366,10 +375,12 @@ def upload_document():
 
 @frappe.whitelist()
 def set_document_client_view(docname, value):
-	project_name, project_timeline = frappe.db.get_value("Project Document", docname, ['parent', 'project_timeline'])
+	project_name, project_timeline, client_view = frappe.db.get_value("Project Document", docname,
+		['parent', 'project_timeline', 'client_view'])
 
 	check_project_user_permission(project_name)
 	check_project_timeline_permission(project_timeline)
+	check_client_view_permission(client_view)
 
 	project = frappe.get_doc("Project", project_name)
 	document_row = project.get("documents", filters={"name": docname})
@@ -381,16 +392,18 @@ def set_document_client_view(docname, value):
 	project.save()
 
 	allowed_disallowed = "allowed" if document_row.client_view else "disallowed"
-	frappe.msgprint(_("{0} Document {1} is now {2} for client view").format(document_row.project_timeline,
+	frappe.msgprint(_("{0} Document {1} is {2} for client view").format(document_row.project_timeline,
 		frappe.bold(document_row.document_name), allowed_disallowed))
 
 
 @frappe.whitelist()
 def approve_document(docname):
-	project_name, project_timeline = frappe.db.get_value("Project Document", docname, ['parent', 'project_timeline'])
+	project_name, project_timeline, client_view = frappe.db.get_value("Project Document", docname,
+		['parent', 'project_timeline', 'client_view'])
 
 	check_project_user_permission(project_name)
 	check_project_timeline_permission(project_timeline)
+	check_client_view_permission(client_view)
 
 	project = frappe.get_doc("Project", project_name)
 	document_row = project.get("documents", filters={"name": docname})
@@ -455,6 +468,22 @@ def has_project_timeline_permission(project_timeline, user=None):
 	for role in user_roles:
 		if role in allowed_roles:
 			return True
+
+	return False
+
+
+def check_client_view_permission(client_view_allowed, user=None):
+	if not has_client_view_permission(client_view_allowed, user):
+		raise frappe.PermissionError
+
+
+def has_client_view_permission(client_view_allowed, user=None):
+	if cint(client_view_allowed):
+		return True
+
+	client_role = frappe.db.get_single_value("Project Milestones Settings", "client_role", cache=True)
+	if client_role and client_role in frappe.get_roles(user):
+		return True
 
 	return False
 

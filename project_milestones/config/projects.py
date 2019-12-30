@@ -10,6 +10,12 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "Project Milestones Settings",
+					"settings": 1,
+					"description": _("Default Project Milestones Settings."),
+				},
+				{
+					"type": "doctype",
 					"name": "Project Timeline",
 					"description": _("Define Project Timeline Category."),
 				},
