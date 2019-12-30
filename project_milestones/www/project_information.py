@@ -19,6 +19,7 @@ def get_context(context):
 		df = meta.get_field(fieldname)
 		return cint((df.permlevel or 0) == 0 or context.doc.has_permlevel_access_to(fieldname, df, ptype))
 
+	context.has_field_permission = has_field_permission
 	context.no_cache = 1
 	context.show_sidebar = True
 
@@ -36,7 +37,6 @@ def get_context(context):
 	context.stage_map = get_timeline_stage_map(context.doc)
 	context.supplier_map = get_supplier_wise_project_order_billing_payment(context.doc.name)
 	context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
-	context.has_field_permission = has_field_permission
 
 	# Title and breadcrumbs
 	context.title = _("Project Information")

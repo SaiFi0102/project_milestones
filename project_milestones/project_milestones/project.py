@@ -189,7 +189,7 @@ def get_supplier_wise_project_order_billing_payment(project_name):
 		supplier_map[d.supplier].paid_amount += d.paid_amount
 
 	for d in pinv_data:
-		supplier_map[d.supplier].billed_amount += d.base_net_total
+		supplier_map[d.supplier].purchase_cost += d.base_net_total
 		supplier_map[d.supplier].outstanding_amount += d.outstanding_amount
 		supplier_map[d.supplier].paid_amount += d.paid_amount
 
