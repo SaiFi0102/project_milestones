@@ -42,5 +42,4 @@ def get_context(context):
 	context.title = _("Project Information")
 	context.parents = [
 		{'title': _('Projects'), 'route': '/project'},
-		{'title': context.doc.project_name, 'route': '/projects?project=' + context.doc.name}
 	]
