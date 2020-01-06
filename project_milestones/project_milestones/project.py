@@ -295,7 +295,7 @@ def get_timeline_stage_documents(project_name, timeline, stage):
 	filters = {"project_timeline": timeline, "project_stage": stage}
 
 	client_role = frappe.db.get_single_value("Project Milestones Settings", "client_role", cache=True)
-	if client_role and client_role in frappe.get_roles():
+	if frappe.session.user != 'Administrator' and client_role and client_role in frappe.get_roles():
 		filters['client_view'] = 1
 
 	documents = project.get("documents", filters)
@@ -479,6 +479,8 @@ def check_client_view_permission(client_view_allowed, user=None):
 
 def has_client_view_permission(client_view_allowed, user=None):
 	if cint(client_view_allowed):
+		return True
+	if frappe.session.user == 'Administrator':
 		return True
 
 	client_role = frappe.db.get_single_value("Project Milestones Settings", "client_role", cache=True)
