@@ -4,6 +4,9 @@ project_milestones.stages.set_stage = function(timeline, stage) {
 	if (!timeline || !stage) {
 		return;
 	}
+	if(!$(`.timeline-document-section[data-timeline='${timeline}']`).length) {
+		return;
+	}
 
 	const $all_buttons = $(`.btn-stage[data-timeline='${timeline}']`);
 	$all_buttons.data('selected', 0);
@@ -18,6 +21,9 @@ project_milestones.stages.set_stage = function(timeline, stage) {
 
 project_milestones.stages.load_documents = function(timeline, stage) {
 	if (!timeline || !stage) {
+		return;
+	}
+	if(!$(`.timeline-document-section[data-timeline='${timeline}']`).length) {
 		return;
 	}
 
@@ -35,25 +41,31 @@ project_milestones.stages.load_documents = function(timeline, stage) {
 				$tbody.empty();
 
 				let field_list = project_milestones.stages.make_table_field_list(timeline);
-				$.each(r.message || [], function (i, document) {
-					let $tr = $('<tr></tr>');
-					$.each(field_list || [], function (i, field) {
-						let $td = $('<td></td>');
-						$td.data('fieldname', field.fieldname);
-						$td.append(project_milestones.make_table_field(field, document));
 
-						if (field.style) {
-							$td.attr('style', field.style);
-						}
-						if (field.class) {
-							$td.attr('class', field.class);
-						}
+				if (r.message && r.message.length) {
+					$.each(r.message || [], function (i, document) {
+						let $tr = $('<tr></tr>');
+						$.each(field_list || [], function (i, field) {
+							let $td = $('<td></td>');
+							$td.data('fieldname', field.fieldname);
+							$td.append(project_milestones.make_table_field(field, document));
 
-						$tr.append($td);
+							if (field.style) {
+								$td.attr('style', field.style);
+							}
+							if (field.class) {
+								$td.attr('class', field.class);
+							}
+
+							$tr.append($td);
+						});
+
+						$tbody.append($tr);
 					});
-
+				} else if(field_list.length) {
+					let $tr = $(`<tr><td class="text-center" colspan="${field_list.length}">${__('No documents to show')}</td></tr>`);
 					$tbody.append($tr);
-				});
+				}
 			}
 		}
 	});
@@ -137,7 +149,7 @@ project_milestones.make_table_field = function(field, doc) {
 		$value = $(`<small></small>`);
 		$value.text(formatted_date);
 	} else {
-		$value = $(`<div></div>`);
+		$value = $(`<small></small>`);
 		$value.text(__(value));
 	}
 

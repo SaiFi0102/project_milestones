@@ -16,7 +16,7 @@
                                 title="{{ d.stage_status }}">
                             {{ d.idx }}
                         </button>
-                        <p>{{ d.project_stage }}</p>
+                        <p><small>{{ d.project_stage }}</small></p>
                     </div>
                 {% endfor %}
                 </div>
@@ -24,7 +24,8 @@
         </div>
     </div>
 
-    <div class="card mb-3">
+    {% if has_field_permission('documents') %}
+    <div class="card mb-3 timeline-document-section" data-timeline="{{ timeline }}">
         <div class="card-header">{{ _("{0} Documents").format(timeline) }}</div>
         <div class="card-body">
             <table class="table" data-timeline="{{ timeline }}">
@@ -62,4 +63,5 @@
             </table>
         </div>
     </div>
+    {% endif %}
 {% endmacro %}

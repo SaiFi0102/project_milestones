@@ -1,7 +1,7 @@
 {% extends "templates/web.html" %}
 {% import "templates/includes/stages.html" as stages %}
 
-{% macro display_section(title, content, is_fieldname=True, two_columns=False, permission_field=None) %}
+{% macro display_section(title, content, is_fieldname=True, two_columns=False, permission_field=None, hide_empty_fields=True) %}
 	{% set p = namespace(
 		override_field_permissions=not is_fieldname,
 		permitted_fields=[],
@@ -9,7 +9,7 @@
 	) %}
 	{% if content is iterable and content is not string %}
 		{% for fieldname in content %}
-			{% if has_field_permission(fieldname) %}
+			{% if has_field_permission(fieldname) and (doc.get(fieldname) or not hide_empty_fields) %}
 				{% set x = p.permitted_fields.append(fieldname) %}
 			{% endif %}
 		{% endfor %}
@@ -52,15 +52,21 @@
 			</tr>
 		</thead>
 		<tbody>
-		{% for supplier in supplier_map %}
+		{% if supplier_map %}
+			{% for supplier in supplier_map %}
+				<tr>
+					<td>{{ supplier }}</td>
+					<td>{{ frappe.format(supplier_map[supplier].po_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
+					<td>{{ frappe.format(supplier_map[supplier].purchase_cost, doc.meta.get_field('total_po_amount'), doc) }}</td>
+					<td>{{ frappe.format(supplier_map[supplier].paid_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
+					<td>{{ frappe.format(supplier_map[supplier].outstanding_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
+				</tr>
+			{% endfor %}
+		{% else %}
 			<tr>
-				<td>{{ supplier }}</td>
-				<td>{{ frappe.format(supplier_map[supplier].po_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
-				<td>{{ frappe.format(supplier_map[supplier].purchase_cost, doc.meta.get_field('total_po_amount'), doc) }}</td>
-				<td>{{ frappe.format(supplier_map[supplier].paid_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
-				<td>{{ frappe.format(supplier_map[supplier].outstanding_amount, doc.meta.get_field('total_po_amount'), doc) }}</td>
+				<td class="text-center" colspan="5">{{ _("No activity") }}</td>
 			</tr>
-		{% endfor %}
+		{% endif %}
 		</tbody>
 	</table>
 {% endmacro %}
@@ -97,7 +103,7 @@ $(".file-size").each(function() {
 	Vue.prototype['__'] = window['__'];
 	Vue.prototype.frappe = window.frappe;
 </script>
-<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
+<script type="text/javascript" src="/assets/js/project_milestones.min.js"></script>
 <script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
 {% endblock %}
 
@@ -136,7 +142,7 @@ $(".file-size").each(function() {
 		'total_outstanding_amount',
 		'total_paid_amount',
 		'total_purchase_cost',
-	], two_columns=True, permission_field='project_details') }}
+	], two_columns=True, permission_field='project_details', hide_empty_fields=False) }}
 
 	{{ display_section("Supplier Payment", suppier_payments_table(), is_fieldname=False, permission_field='portal_supplier_payments_section') }}
 
