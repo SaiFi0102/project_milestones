@@ -482,7 +482,7 @@ def has_client_view_permission(client_view_allowed, user=None):
 		return True
 
 	client_role = frappe.db.get_single_value("Project Milestones Settings", "client_role", cache=True)
-	if client_role and client_role in frappe.get_roles(user):
+	if client_role and client_role not in frappe.get_roles(user):
 		return True
 
 	return False
