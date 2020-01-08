@@ -48,7 +48,7 @@ def validate_document_status(self):
 def set_document_status(self):
 	for d in self.documents:
 		if d.submitted_attachment:
-			if d.document_status != "Approved":
+			if d.document_status not in ["Approved", "Review Required"]:
 				d.document_status = "Pending Approval"
 		else:
 			d.document_status = "Awaiting Upload"
@@ -418,6 +418,33 @@ def approve_document(docname):
 	project.save()
 
 	frappe.msgprint(_("{0} Document {1} has been successfully <b>Approved</b>").format(document_row.project_timeline,
+		frappe.bold(document_row.document_name)))
+
+
+@frappe.whitelist()
+def request_review_document(docname):
+	project_name, project_timeline, client_view = frappe.db.get_value("Project Document", docname,
+		['parent', 'project_timeline', 'client_view'])
+
+	check_project_user_permission(project_name)
+	check_project_timeline_permission(project_timeline)
+	check_client_view_permission(client_view)
+
+	project = frappe.get_doc("Project", project_name)
+	document_row = project.get("documents", filters={"name": docname})
+	if not document_row:
+		frappe.throw(_("Invalid Document Selected"))
+
+	document_row = document_row[0]
+	if document_row.document_status == "Approved":
+		frappe.throw(_("Document is already approved"))
+	if document_row.document_status == "Review Required":
+		frappe.throw(_("Document is already pending for review"))
+
+	document_row.document_status = "Review Required"
+	project.save()
+
+	frappe.msgprint(_("{0} Document {1} has been requested for review").format(document_row.project_timeline,
 		frappe.bold(document_row.document_name)))
 
 

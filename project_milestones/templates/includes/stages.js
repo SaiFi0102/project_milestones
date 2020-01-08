@@ -130,12 +130,36 @@ project_milestones.make_table_field = function(field, doc) {
 			$value.attr("disabled", 1);
 		}
 	} else if (field.fieldtype === "Status") {
-		if (value === "Pending Approval" && cint(field.canwrite)) {
-			$value = $(`<button type="button" class="btn btn-sm btn-primary"></button>`);
-			$value.text(__("Approve"));
-			$value.attr('title', __("Click to approve"));
-			$value.click(() => project_milestones.stages.approve_document(doc.name, doc.document_name,
-				doc.project_timeline, doc.project_stage));
+		if (["Pending Approval", "Review Required"].includes(value) && cint(field.canwrite)) {
+			const button_id = `dropdown-t${cstr(doc.project_timeline)}-s${cstr(doc.project_stage)}`;
+
+			$value = $(`<div class="dropdown"></div>`);
+			const $button = $(`<button type="button" class="btn btn-sm btn-warning dropdown-toggle" id="${button_id}" aria-haspopup="true" aria-expanded="true">${__(value)}</button>`);
+			const $dropdown_div = $(`<div class="dropdown-menu" aria-labelledby="${button_id}"></div>`);
+
+			const $approve = $(`<a class="dropdown-item" href="#">${__("Approve")}</a>`);
+			$approve.click(() => {
+				project_milestones.stages.approve_document(doc.name, doc.document_name,
+					doc.project_timeline, doc.project_stage);
+				return false;
+			});
+			$dropdown_div.append($approve);
+
+			if (value !== "Review Required") {
+				const $request_review = $(`<a class="dropdown-item" href="#">${__("Request Review")}</a>`);
+				$request_review.click(() => {
+					project_milestones.stages.request_review_document(doc.name, doc.document_name,
+						doc.project_timeline, doc.project_stage);
+					return false;
+				});
+				$dropdown_div.append($request_review);
+			}
+
+			$button.click(() => $dropdown_div.toggle());
+
+			$value.append($button);
+			$value.append($dropdown_div);
+			return $value;
 		} else {
 			$value = $(`<small></small>`);
 			$value.text(__(value));
@@ -190,8 +214,27 @@ project_milestones.stages.approve_document = function(docname, document_name, ti
 	);
 };
 
+project_milestones.stages.request_review_document = function(docname, document_name, timeline, stage) {
+	return frappe.confirm(
+		__('Are you sure you want to request a review for {0} Document {1}?',
+			[timeline, `<b>${document_name}</b>`]),
+		function(){
+			return frappe.call({
+				method: "project_milestones.project_milestones.project.request_review_document",
+				args: {
+					docname: docname
+				},
+				freeze: 1,
+				always: function(r) {
+					project_milestones.stages.load_documents(timeline, stage);
+				}
+			});
+		},
+	);
+};
+
 project_milestones.stages.view_document = function(docname, fieldname) {
-	var w = window.open("/api/method/project_milestones.project_milestones.project.download_document"
+	const w = window.open("/api/method/project_milestones.project_milestones.project.download_document"
 		+ "?docname=" + encodeURIComponent(docname)
 		+ "&fieldname=" + encodeURIComponent(fieldname)
 	);
