@@ -149,7 +149,7 @@ $(".file-size").each(function() {
 	{{ display_section("General Notes", 'notes', permission_field='notes') }}
 
 	{% for timeline in stage_map %}
-		{{ stages.display_stages(stage_map[timeline], timeline, has_field_permission) }}
+		{{ stages.display_stages(stage_map[timeline], timeline, has_field_permission, can_clear_attachments) }}
 	{% endfor %}
 
 	{% if has_field_permission('portal_comments_section') %}

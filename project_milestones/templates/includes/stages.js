@@ -79,14 +79,16 @@ project_milestones.stages.make_table_field_list = function(timeline) {
 
 	const $ths = $(`th[data-timeline='${timeline}']`);
 	$ths.each(function (i, th) {
-		const fieldname = $(th).data('fieldname');
-		const fieldtype = $(th).data('fieldtype');
-		const canwrite = $(th).data('canwrite');
-		const style = $(th).attr('style');
-		const classStr = $(th).attr('class');
+		let field_dict = {};
+		field_dict['fieldname'] = $(th).data('fieldname');
+		field_dict['fieldtype'] = $(th).data('fieldtype');
+		field_dict['canwrite'] = $(th).data('canwrite');
+		field_dict['canclear'] = $(th).data('canclear');
+		field_dict['style'] = $(th).attr('style');
+		field_dict['class'] = $(th).attr('class');
 
-		if (fieldname) {
-			field_list.push({fieldname: fieldname, fieldtype: fieldtype, style: style, class: classStr, canwrite: canwrite});
+		if (field_dict['fieldname']) {
+			field_list.push(field_dict);
 		}
 	});
 
@@ -113,28 +115,48 @@ project_milestones.make_table_field = function(field, doc) {
 			$value.attr("disabled", 1);
 		}
 	} else if(field.fieldtype === "Attach") {
-		$value = $(`<button type="button" class="btn btn-sm"></button>`);
+		$value = $(`<div class="btn-group" role="group"></div>`);
 
 		if (value) {
-			$value.text(__("View"));
-			$value.addClass('btn-info');
-			$value.click(() => project_milestones.stages.view_document(doc.name, field.fieldname));
+			const $button = $(`<button type="button" class="btn btn-sm btn-info">${__("View")}</button>`);
+			$button.click(() => project_milestones.stages.view_document(doc.name, field.fieldname));
+			$value.append($button);
+
+			if (cint(field.canwrite) && cint(field.canclear) && doc.document_status !== "Approved") {
+				const button_id = `clear-dn${doc.name}-f${field.fieldname}`;
+				const $dropdown_group = $(`<div class="btn-group" role="group"></div>`);
+				const $dropdown_button = $(`<button type="button" class="btn btn-sm btn-info dropdown-toggle" style="padding:0 0.2rem 0 0.2rem" id="${button_id}" aria-haspopup="true" aria-expanded="false"></button>`);
+				const $dropdown_div = $(`<div class="dropdown-menu" aria-labelledby="${button_id}"></div>`);
+
+				const $clear_button = $(`<a class="dropdown-item" href="#">${__("Clear Attachment")}</a>`);
+				$clear_button.click(() => {
+					project_milestones.stages.clear_document(doc.name, field.fieldname, doc.document_name,
+						doc.project_timeline, doc.project_stage);
+					return false;
+				});
+				$dropdown_div.append($clear_button);
+
+				$dropdown_button.click(() => $dropdown_div.toggle());
+				$dropdown_group.append($dropdown_button);
+				$dropdown_group.append($dropdown_div);
+				$value.append($dropdown_group);
+			}
 		} else if (cint(field.canwrite)) {
-			$value.text(__("Attach"));
-			$value.addClass('btn-primary');
-			$value.click(() => project_milestones.stages.attach_document(doc.name, field.fieldname,
+			const $button = $(`<button type="button" class="btn btn-sm btn-primary">${__("Attach")}</button>`);
+			$button.click(() => project_milestones.stages.attach_document(doc.name, field.fieldname, doc.document_name,
 				doc.project_timeline, doc.project_stage));
+			$value.append($button);
 		} else {
-			$value.text(__("Not Attached"));
-			$value.addClass('btn-default');
-			$value.attr("disabled", 1);
+			const $button = $(`<button type="button" class="btn btn-sm btn-default">${__("Not Attached")}</button>`);
+			$button.attr("disabled", 1);
+			$value.append($button);
 		}
 	} else if (field.fieldtype === "Status") {
 		if (["Pending Approval", "Review Required"].includes(value) && cint(field.canwrite)) {
-			const button_id = `dropdown-t${cstr(doc.project_timeline)}-s${cstr(doc.project_stage)}`;
+			const button_id = `status-dn${doc.name}`;
 
 			$value = $(`<div class="dropdown"></div>`);
-			const $button = $(`<button type="button" class="btn btn-sm btn-warning dropdown-toggle" id="${button_id}" aria-haspopup="true" aria-expanded="true">${__(value)}</button>`);
+			const $button = $(`<button type="button" class="btn btn-sm btn-warning dropdown-toggle" id="${button_id}" aria-haspopup="true" aria-expanded="false">${__(value)}</button>`);
 			const $dropdown_div = $(`<div class="dropdown-menu" aria-labelledby="${button_id}"></div>`);
 
 			const $approve = $(`<a class="dropdown-item" href="#">${__("Approve")}</a>`);
@@ -159,7 +181,6 @@ project_milestones.make_table_field = function(field, doc) {
 
 			$value.append($button);
 			$value.append($dropdown_div);
-			return $value;
 		} else {
 			$value = $(`<small></small>`);
 			$value.text(__(value));
@@ -182,7 +203,7 @@ project_milestones.make_table_field = function(field, doc) {
 	return $value;
 };
 
-project_milestones.stages.attach_document = function(docname, fieldname, timeline, stage) {
+project_milestones.stages.attach_document = function(docname, fieldname, document_name, timeline, stage) {
 	return new frappe.ui.FileUploader({
 		doctype: "Project Document",
 		docname: docname,
@@ -193,6 +214,26 @@ project_milestones.stages.attach_document = function(docname, fieldname, timelin
 			project_milestones.stages.load_documents(timeline, stage);
 		}
 	});
+};
+
+project_milestones.stages.clear_document = function(docname, fieldname, document_name, timeline, stage) {
+	return frappe.confirm(
+		__('Are you sure you want to clear attachment for {0} Document {1}? This action may not be reversible.',
+			[timeline, `<b>${document_name}</b>`]),
+		function(){
+			return frappe.call({
+				method: "project_milestones.project_milestones.project.clear_document",
+				args: {
+					docname: docname,
+					fieldname: fieldname
+				},
+				freeze: 1,
+				always: function(r) {
+					project_milestones.stages.load_documents(timeline, stage);
+				}
+			});
+		},
+	);
 };
 
 project_milestones.stages.approve_document = function(docname, document_name, timeline, stage) {

@@ -374,6 +374,39 @@ def upload_document():
 
 
 @frappe.whitelist()
+def clear_document(docname, fieldname):
+	validate_document_fieldname(fieldname)
+
+	project_name, project_timeline, client_view = frappe.db.get_value("Project Document", docname,
+		['parent', 'project_timeline', 'client_view'])
+
+	check_clear_attachment_permission()
+	check_project_user_permission(project_name)
+	check_project_timeline_permission(project_timeline)
+	check_client_view_permission(client_view)
+
+	project = frappe.get_doc("Project", project_name)
+	document_row = project.get("documents", filters={"name": docname})
+	if not document_row:
+		frappe.throw(_("Invalid Document Selected"))
+
+	document_row = document_row[0]
+
+	if document_row.document_status == "Approved":
+		frappe.throw(_("{0} Document {1} {2} cannot be cleared because it is <b>Approved</b>").format(
+			document_row.project_timeline, frappe.bold(document_row.document_name), frappe.unscrub(fieldname)))
+
+	if not document_row.get(fieldname):
+		frappe.throw(_("Nothing to clear"))
+
+	document_row.set(fieldname, "")
+	project.save()
+
+	frappe.msgprint(_("{0} Document {1} {2} has been successfully <b>cleared</b>").format(document_row.project_timeline,
+		frappe.bold(document_row.document_name), frappe.unscrub(fieldname)))
+
+
+@frappe.whitelist()
 def set_document_client_view(docname, value):
 	project_name, project_timeline, client_view = frappe.db.get_value("Project Document", docname,
 		['parent', 'project_timeline', 'client_view'])
@@ -513,6 +546,23 @@ def has_client_view_permission(client_view_allowed, user=None):
 	client_role = frappe.db.get_single_value("Project Milestones Settings", "client_role", cache=True)
 	if client_role and client_role not in frappe.get_roles(user):
 		return True
+
+	return False
+
+
+def check_clear_attachment_permission(user=None):
+	if not has_clear_attachment_permission(user):
+		raise frappe.PermissionError
+
+
+def has_clear_attachment_permission(user=None):
+	settings = frappe.get_single("Project Milestones Settings")
+	user_roles = frappe.get_roles(user)
+	allowed_roles = [d.role for d in settings.clear_attachment_roles]
+
+	for role in allowed_roles:
+		if role in user_roles:
+			return True
 
 	return False
 

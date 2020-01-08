@@ -5,7 +5,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "client_role"
+  "client_role",
+  "column_break_2",
+  "clear_attachment_roles"
  ],
  "fields": [
   {
@@ -13,11 +15,21 @@
    "fieldtype": "Link",
    "label": "Client Role",
    "options": "Role"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "clear_attachment_roles",
+   "fieldtype": "Table",
+   "label": "Roles Allowed to Clear Attachments",
+   "options": "Has Role"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2019-12-30 14:12:00.858696",
+ "modified": "2020-01-08 18:04:22.920920",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Milestones Settings",

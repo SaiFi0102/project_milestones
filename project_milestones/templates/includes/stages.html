@@ -1,4 +1,4 @@
-{% macro display_stages(stages, timeline, has_field_permission) %}
+{% macro display_stages(stages, timeline, has_field_permission, can_clear_attachments) %}
     {% set width = frappe.utils.flt(100 / (stages|len or 1), 6) %}
     <div class="card mb-3 timeline-stage-section" data-timeline="{{ timeline }}">
         <div class="card-header">{{ _("{0} Stages").format(timeline) }}</div>
@@ -6,7 +6,7 @@
             <div class="stage">
                 <div class="stage-row" data-timeline="{{ timeline }}">
                 {% for d in stages %}
-                    <div class="stage-step" style="width: {{ width }}">
+                    <div class="stage-step" style="width: {{ width }}%">
                         <button type="button"
                                 class="btn btn-stage btn-{% if d.selected %}primary{% else %}default{% endif %}"
                                 data-timeline="{{ timeline }}"
@@ -38,7 +38,8 @@
                                 >{{ _("Document Name") }}</th>
                         {% endif %}
                         {% if has_field_permission('client_view', 'documents') %}
-                            <th data-timeline="{{ timeline }}" data-fieldname="client_view" data-fieldtype="Check" data-canwrite="{{ has_field_permission('client_view', 'documents', 'write') }}"
+                            <th data-timeline="{{ timeline }}" data-fieldname="client_view" data-fieldtype="Check"
+                                data-canwrite="{{ has_field_permission('client_view', 'documents', 'write') }}"
                                 style="text-align: center">{{ _("Client View") }}</th>
                         {% endif %}
                         {% if has_field_permission('submitted_attachment_date', 'documents') %}
@@ -46,15 +47,20 @@
                                 style="text-align: center">{{ _("Submitted Date") }}</th>
                         {% endif %}
                         {% if has_field_permission('submitted_attachment', 'documents') %}
-                            <th data-timeline="{{ timeline }}" data-fieldname="submitted_attachment" data-fieldtype="Attach" data-canwrite="{{ has_field_permission('submitted_attachment', 'documents', 'write') }}"
+                            <th data-timeline="{{ timeline }}" data-fieldname="submitted_attachment" data-fieldtype="Attach"
+                                data-canwrite="{{ has_field_permission('submitted_attachment', 'documents', 'write') }}"
+                                data-canclear="{{ can_clear_attachments }}"
                                 style="text-align: center">{{ _("Submitted Attachment") }}</th>
                         {% endif %}
                         {% if has_field_permission('reviewed_attachment', 'documents') %}
-                            <th data-timeline="{{ timeline }}" data-fieldname="reviewed_attachment" data-fieldtype="Attach" data-canwrite="{{ has_field_permission('reviewed_attachment', 'documents', 'write') }}"
+                            <th data-timeline="{{ timeline }}" data-fieldname="reviewed_attachment" data-fieldtype="Attach"
+                                data-canwrite="{{ has_field_permission('reviewed_attachment', 'documents', 'write') }}"
+                                data-canclear="{{ can_clear_attachments }}"
                                 style="text-align: center">{{ _("Reviewed Attachment") }}</th>
                         {% endif %}
                         {% if has_field_permission('document_status', 'documents') %}
-                            <th data-timeline="{{ timeline }}" data-fieldname="document_status" data-fieldtype="Status" data-canwrite="{{ has_field_permission('document_status', 'documents', 'write') }}"
+                            <th data-timeline="{{ timeline }}" data-fieldname="document_status" data-fieldtype="Status"
+                                data-canwrite="{{ has_field_permission('document_status', 'documents', 'write') }}"
                                 style="text-align: center">{{ _("Status") }}</th>
                         {% endif %}
                     </tr>

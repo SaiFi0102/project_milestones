@@ -3,7 +3,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 from project_milestones.project_milestones.project import get_timeline_stage_map,\
-	get_supplier_wise_project_order_billing_payment, check_project_user_permission
+	get_supplier_wise_project_order_billing_payment, check_project_user_permission, has_clear_attachment_permission
 from frappe.website.utils import get_comment_list
 
 
@@ -37,6 +37,7 @@ def get_context(context):
 	context.stage_map = get_timeline_stage_map(context.doc)
 	context.supplier_map = get_supplier_wise_project_order_billing_payment(context.doc.name)
 	context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
+	context.can_clear_attachments = cint(has_clear_attachment_permission())
 
 	# Title and breadcrumbs
 	context.title = _("Project Information")
