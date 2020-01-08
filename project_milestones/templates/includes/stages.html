@@ -1,6 +1,6 @@
-{% macro display_stages(stages, timeline, has_field_permission, can_clear_attachments) %}
+{% macro display_stages(stages, timeline, has_field_permission, can_clear_attachments, single_stage_timelines) %}
     {% set width = frappe.utils.flt(100 / (stages|len or 1), 6) %}
-    <div class="card mb-3 timeline-stage-section" data-timeline="{{ timeline }}">
+    <div class="card mb-3 timeline-stage-section{% if timeline in single_stage_timelines %} hidden{% endif %}" data-timeline="{{ timeline }}">
         <div class="card-header">{{ _("{0} Stages").format(timeline) }}</div>
         <div class="card-body">
             <div class="stage">

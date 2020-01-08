@@ -10,6 +10,8 @@ import os
 
 def validate(self, method):
 	check_duplicates_stages(self)
+	validate_single_stage_timeline(self, 'stages')
+	validate_single_stage_timeline(self, 'documents')
 	reorder_stages(self)
 	validate_document_status(self)
 	set_document_status(self)
@@ -31,8 +33,23 @@ def check_duplicates_stages(self):
 			unique.add(key)
 
 
+def validate_single_stage_timeline(self, parentfield):
+	single_stage_timelines = [d.project_timeline for d in self.get(parentfield)
+		if frappe.get_cached_value("Project Timeline", d.project_timeline, "single_stage")]
+
+	timeline_stage_map = {}
+	for d in self.get(parentfield):
+		if d.project_timeline in single_stage_timelines:
+			timeline_stage_map.setdefault(d.project_timeline, set()).add(d.project_stage)
+
+	for timeline, stages in iteritems(timeline_stage_map):
+		if len(stages) > 1:
+			frappe.throw(_("Project Timeline {0} can not have multiple stages").format(frappe.bold(timeline)))
+
+
 def reorder_stages(self):
-	self.stages = sorted(self.stages, key=lambda d: d.project_timeline)
+	self.stages = sorted(self.stages,
+		key=lambda d: (not frappe.get_cached_value("Project Timeline", d.project_timeline, "single_stage"), d.project_timeline))
 	for i, d in enumerate(self.stages):
 		d.idx = i + 1
 
@@ -109,7 +126,10 @@ def get_timeline_stage_map(self, ignore_permissions=False):
 		elif stages:
 			stages[0].selected = 1
 
-	return stage_map
+	single_stage_timelines = [d for d in stage_map.keys()
+		if frappe.get_cached_value("Project Timeline", d, "single_stage")]
+
+	return stage_map, single_stage_timelines
 
 
 def on_po_submit_cancel(self, method):
@@ -259,7 +279,8 @@ def get_stages_from_project_type(project_type):
 
 	doc = frappe.get_cached_doc("Project Type", project_type)
 	stages = [{"project_timeline": d.project_timeline, "project_stage": d.project_stage} for d in doc.stages]
-	stages = sorted(stages, key=lambda d: d.get('project_timeline'))
+	stages = sorted(stages,
+		key=lambda d: (not frappe.get_cached_value("Project Timeline", d.get('project_timeline'), "single_stage"), d.get('project_timeline')))
 	return stages
 
 

@@ -34,7 +34,7 @@ def get_context(context):
 	# Get project doc context
 	context.doc = frappe.get_doc("Project", frappe.form_dict.project)
 	context.doc.run_method("onload")
-	context.stage_map = get_timeline_stage_map(context.doc)
+	context.stage_map, context.single_stage_timelines = get_timeline_stage_map(context.doc)
 	context.supplier_map = get_supplier_wise_project_order_billing_payment(context.doc.name)
 	context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
 	context.can_clear_attachments = cint(has_clear_attachment_permission())

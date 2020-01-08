@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "field:project_timeline_name",
  "creation": "2019-12-13 01:39:21.721272",
  "doctype": "DocType",
@@ -6,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "project_timeline_name",
+  "single_stage",
   "allowed_roles"
  ],
  "fields": [
@@ -20,9 +22,17 @@
    "fieldtype": "Table",
    "label": "Allowed Roles",
    "options": "Has Role"
+  },
+  {
+   "default": "0",
+   "fieldname": "single_stage",
+   "fieldtype": "Check",
+   "label": "Single Stage",
+   "set_only_once": 1
   }
  ],
- "modified": "2019-12-26 15:58:13.738965",
+ "links": [],
+ "modified": "2020-01-08 19:04:23.259896",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Timeline",
