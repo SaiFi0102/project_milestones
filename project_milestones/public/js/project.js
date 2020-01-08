@@ -1,4 +1,11 @@
 frappe.ui.form.on("Project", {
+	refresh: function(frm) {
+		frm.web_link && frm.web_link.remove();
+		if (!frm.doc.__islocal) {
+			frm.add_web_link("/project-information?project=" + encodeURIComponent(frm.doc.name));
+		}
+	},
+
 	get_stages_from_project_type: function(frm) {
 		if (frm.doc.project_type) {
 			frappe.call({
