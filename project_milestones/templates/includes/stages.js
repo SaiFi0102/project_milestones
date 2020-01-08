@@ -43,6 +43,7 @@ project_milestones.stages.load_documents = function(timeline, stage) {
 				let field_list = project_milestones.stages.make_table_field_list(timeline);
 
 				if (r.message && r.message.length) {
+					$(`.timeline-document-section[data-timeline='${timeline}']`).show();
 					$.each(r.message || [], function (i, document) {
 						let $tr = $('<tr></tr>');
 						$.each(field_list || [], function (i, field) {
@@ -63,8 +64,9 @@ project_milestones.stages.load_documents = function(timeline, stage) {
 						$tbody.append($tr);
 					});
 				} else if(field_list.length) {
-					let $tr = $(`<tr><td class="text-center" colspan="${field_list.length}">${__('No documents to show')}</td></tr>`);
-					$tbody.append($tr);
+					$(`.timeline-document-section[data-timeline='${timeline}']`).hide();
+					//let $tr = $(`<tr><td class="text-center" colspan="${field_list.length}">${__('No documents to show')}</td></tr>`);
+					//$tbody.append($tr);
 				}
 			}
 		}
