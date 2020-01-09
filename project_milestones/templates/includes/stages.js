@@ -125,7 +125,7 @@ project_milestones.make_table_field = function(field, doc) {
 			if (cint(field.canwrite) && cint(field.canclear) && doc.document_status !== "Approved") {
 				const button_id = `clear-dn${doc.name}-f${field.fieldname}`;
 				const $dropdown_group = $(`<div class="btn-group" role="group"></div>`);
-				const $dropdown_button = $(`<button type="button" class="btn btn-sm btn-info dropdown-toggle" style="padding:0 0.2rem 0 0.2rem" id="${button_id}" aria-haspopup="true" aria-expanded="false"></button>`);
+				const $dropdown_button = $(`<button type="button" class="btn btn-sm btn-info dropdown-toggle" style="padding:0 0.2rem 0 0.2rem" id="${button_id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>`);
 				const $dropdown_div = $(`<div class="dropdown-menu" aria-labelledby="${button_id}"></div>`);
 
 				const $clear_button = $(`<a class="dropdown-item" href="#">${__("Clear Attachment")}</a>`);
@@ -136,7 +136,6 @@ project_milestones.make_table_field = function(field, doc) {
 				});
 				$dropdown_div.append($clear_button);
 
-				$dropdown_button.click(() => $dropdown_div.toggle());
 				$dropdown_group.append($dropdown_button);
 				$dropdown_group.append($dropdown_div);
 				$value.append($dropdown_group);
@@ -156,7 +155,7 @@ project_milestones.make_table_field = function(field, doc) {
 			const button_id = `status-dn${doc.name}`;
 
 			$value = $(`<div class="dropdown"></div>`);
-			const $button = $(`<button type="button" class="btn btn-sm btn-warning dropdown-toggle" id="${button_id}" aria-haspopup="true" aria-expanded="false">${__(value)}</button>`);
+			const $button = $(`<button type="button" class="btn btn-sm btn-warning dropdown-toggle" id="${button_id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">${__(value)}</button>`);
 			const $dropdown_div = $(`<div class="dropdown-menu" aria-labelledby="${button_id}"></div>`);
 
 			const $approve = $(`<a class="dropdown-item" href="#">${__("Approve")}</a>`);
@@ -176,8 +175,6 @@ project_milestones.make_table_field = function(field, doc) {
 				});
 				$dropdown_div.append($request_review);
 			}
-
-			$button.click(() => $dropdown_div.toggle());
 
 			$value.append($button);
 			$value.append($dropdown_div);
