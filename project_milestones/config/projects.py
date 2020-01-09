@@ -24,6 +24,11 @@ def get_data():
 					"name": "Project Stage",
 					"description": _("Define Project Stage."),
 				},
+				{
+					"type": "doctype",
+					"name": "Project Comment Section",
+					"description": _("Define Project Comment Section."),
+				},
 			]
 		}
 	]

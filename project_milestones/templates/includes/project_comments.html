@@ -1,58 +1,61 @@
-<div class="comment-view mb-4">
-	{% if comment_text %}
-	<div class="comment-header mb-4">{{ comment_text }}</div>
-	{% endif %}
-	{% if not comment_list %}
-	<div class="no-comment">
-		<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
-	</div>
-	{% endif %}
+<div class="comment-section" data-comment-section="{{ comment_section }}">
+	<div class="comment-view">
+		{% if comment_text %}
+		<div class="comment-header mb-4">{{ comment_text }}</div>
+		{% endif %}
+		{% if not comment_list %}
+		<div class="no-comment">
+			<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
+		</div>
+		{% endif %}
 
-	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
-        {% for comment in comment_list %}
-        <div class="my-3">
-            {% include "templates/includes/comments/comment.html" %}
-        </div>
-		{% endfor %}
+		<div itemscope itemtype="http://schema.org/UserComments" class="comment-list">
+			{% for comment in comment_list %}
+			<div class="my-3">
+				{% include "templates/includes/comments/comment.html" %}
+			</div>
+			{% endfor %}
+		</div>
 	</div>
-</div>
 
-{% if not is_communication %}
-<div class="add-comment-section">
-	<div class="comment-form-wrapper">
-		<a class="add-comment btn btn-light btn-sm">{{ _("Add Comment") }}</a>
-			<div style="display: none;" id="comment-form">
-			<p>{{ _("Leave a Comment") }}</p>
-			<div class="alert" style="display:none;"></div>
-			<form>
-				<fieldset>
-					<p><textarea class="form-control" name="comment" rows=7
-						placeholder="{{ _("Comment") }}"></textarea></p>
-                        <button class="btn btn-primary btn-sm" id="submit-comment" style="margin-top:10px">
-                            {{ _("Submit") }}</button>
-				</fieldset>
-			</form>
+	<div class="add-comment-section">
+		<div class="comment-form-wrapper">
+			<a class="add-comment btn btn-light btn-sm">{{ _("Add Comment") }}</a>
+				<div style="display: none;" class="comment-form">
+				<p>{{ _("Leave a Comment") }}</p>
+				<div class="alert" style="display:none;"></div>
+				<form>
+					<fieldset>
+						<p><textarea class="form-control" name="comment" rows=5
+							placeholder="{{ _("Comment") }}"></textarea></p>
+							<button class="btn btn-primary btn-sm submit-comment" style="margin-top:10px">
+								{{ _("Submit") }}</button>
+					</fieldset>
+				</form>
+			</div>
 		</div>
 	</div>
 </div>
-{% endif %}
 <script>
 	frappe.ready(function() {
-		var n_comments = $(".comment-row").length;
+		var comment_section = "{{ comment_section|replace('\"', '\\\"') }}";
+		var $section_wrapper = $(`.comment-section[data-comment-section="${comment_section}"]`);
+		var n_comments = $(".comment-row", $section_wrapper).length;
 
 		if(n_comments) {
-			$(".no_comment").toggle(false);
+			$(".no_comment", $section_wrapper).toggle(false);
 		}
-		$(".add-comment").click(function() {
+		$(".add-comment", $section_wrapper).click(function() {
 			$(this).toggle(false);
-		 	$("#comment-form").toggle();
-			$("#comment-form textarea").val("");
+		 	$(".comment-form", $section_wrapper).toggle();
+			$(".comment-form textarea", $section_wrapper).val("");
         });
 
-		$("#submit-comment").click(function() {
+		$(".submit-comment", $section_wrapper).click(function() {
 			var args = {
 				project_name: cur_project,
-				comment: $("[name='comment']").val(),
+				comment_section: comment_section,
+				comment: $("[name='comment']", $section_wrapper).val()
 			};
 
 			if(!args.comment) {
@@ -66,22 +69,19 @@
 				method: "project_milestones.project_milestones.project.add_comment",
 				args: args,
 				callback: function(r) {
-					if(r.exc) {
-						if(r._server_messages)
-							frappe.msgprint(r._server_messages);
-					} else {
+					if(!r.exc) {
 						if (r.message) {
-							$(r.message).appendTo("#comment-list");
+							$(r.message).appendTo($(".comment-list", $section_wrapper));
 						}
-						$(".no-comment, .add-comment").toggle(false);
-						$("#comment-form").toggle();
+						$(".no-comment, .add-comment", $section_wrapper).toggle(false);
+						$(".comment-form", $section_wrapper).toggle();
 					}
-					$(".add-comment").text(__("Add Another Comment"));
-					$(".add-comment").toggle();
+					$(".add-comment", $section_wrapper).text(__("Add Another Comment"));
+					$(".add-comment", $section_wrapper).toggle();
 				}
-			})
+			});
 
 			return false;
-		})
+		});
 	});
 </script>

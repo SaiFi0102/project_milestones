@@ -40,7 +40,7 @@
 	{% endif %}
 {% endmacro %}
 
-{% macro suppier_payments_table() %}
+{% macro supplier_payments_table() %}
 	<table class="table">
 		<thead>
 			<tr>
@@ -69,6 +69,12 @@
 		{% endif %}
 		</tbody>
 	</table>
+{% endmacro %}
+
+{% macro print_comment_section(comment_section, comment_list) %}
+<d`iv class="comments">
+	{% include 'templates/includes/project_comments.html' %}
+</div>
 {% endmacro %}
 
 {% block style %}
@@ -144,7 +150,7 @@ $(".file-size").each(function() {
 		'total_purchase_cost',
 	], two_columns=True, permission_field='project_details', hide_empty_fields=False) }}
 
-	{{ display_section("Supplier Payment", suppier_payments_table(), is_fieldname=False, permission_field='portal_supplier_payments_section') }}
+	{{ display_section("Supplier Payment", supplier_payments_table(), is_fieldname=False, permission_field='portal_supplier_payments_section') }}
 
 	{{ display_section("General Notes", 'notes', permission_field='notes') }}
 
@@ -153,9 +159,8 @@ $(".file-size").each(function() {
 	{% endfor %}
 
 	{% if has_field_permission('portal_comments_section') %}
-	<div class="comments">
-		<h3>{{ _("Comments") }}</h3>
-		{% include 'templates/includes/project_comments.html' %}
-	</div>
+		{% for comment_section in comment_map %}
+			{{ display_section(comment_section, print_comment_section(comment_section, comment_map[comment_section]), is_fieldname=False) }}
+		{% endfor %}
 	{% endif %}
 {% endblock %}

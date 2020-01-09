@@ -3,8 +3,8 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 from project_milestones.project_milestones.project import get_timeline_stage_map,\
-	get_supplier_wise_project_order_billing_payment, check_project_user_permission, has_clear_attachment_permission
-from frappe.website.utils import get_comment_list
+	get_supplier_wise_project_order_billing_payment, check_project_user_permission, has_clear_attachment_permission,\
+	has_comment_section_permission
 
 
 def get_context(context):
@@ -36,7 +36,7 @@ def get_context(context):
 	context.doc.run_method("onload")
 	context.stage_map, context.single_stage_timelines = get_timeline_stage_map(context.doc)
 	context.supplier_map = get_supplier_wise_project_order_billing_payment(context.doc.name)
-	context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
+	context.comment_map = get_comment_map(context.doc.name)
 	context.can_clear_attachments = cint(has_clear_attachment_permission())
 
 	# Title and breadcrumbs
@@ -44,3 +44,30 @@ def get_context(context):
 	context.parents = [
 		{'title': _('Projects'), 'route': '/project'},
 	]
+
+
+def get_comment_map(name):
+	comment_sections = frappe.get_all("Project Comment Section")
+
+	comments = frappe.get_all('Comment',
+		fields=['name', 'creation', 'owner', 'comment_email', 'comment_by', 'content', 'project_comment_section'],
+		filters=dict(
+			reference_doctype="Project",
+			reference_name=name,
+			comment_type='Comment',
+			published=1
+		),
+		order_by='creation asc'
+	)
+
+	comment_map = {}
+
+	for d in comment_sections:
+		if has_comment_section_permission(d.name):
+			comment_map[d.name] = []
+
+	for d in comments:
+		if d.project_comment_section and d.project_comment_section in comment_map:
+			comment_map[d.project_comment_section].append(d)
+
+	return comment_map

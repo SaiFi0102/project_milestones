@@ -503,8 +503,9 @@ def request_review_document(docname):
 
 
 @frappe.whitelist()
-def add_comment(project_name, comment):
+def add_comment(project_name, comment_section, comment):
 	check_project_user_permission(project_name)
+	check_comment_section_permission(comment_section)
 
 	comment_doc = frappe.get_doc({
 		"doctype": "Comment",
@@ -514,6 +515,7 @@ def add_comment(project_name, comment):
 		"reference_doctype": "Project",
 		"reference_name": project_name,
 		"content": comment,
+		"project_comment_section": comment_section,
 		"published": 1
 	}).insert(ignore_permissions=True)
 
@@ -580,6 +582,23 @@ def has_clear_attachment_permission(user=None):
 	settings = frappe.get_single("Project Milestones Settings")
 	user_roles = frappe.get_roles(user)
 	allowed_roles = [d.role for d in settings.clear_attachment_roles]
+
+	for role in allowed_roles:
+		if role in user_roles:
+			return True
+
+	return False
+
+
+def check_comment_section_permission(comment_section, user=None):
+	if not has_comment_section_permission(comment_section, user):
+		raise frappe.PermissionError
+
+
+def has_comment_section_permission(comment_section, user=None):
+	project_comment_section = frappe.get_cached_doc("Project Comment Section", comment_section)
+	user_roles = frappe.get_roles(user)
+	allowed_roles = [d.role for d in project_comment_section.roles]
 
 	for role in allowed_roles:
 		if role in user_roles:
