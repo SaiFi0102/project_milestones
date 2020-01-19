@@ -16,6 +16,9 @@ project_milestones.stages.set_stage = function(timeline, stage) {
 	$selected.data('selected', 1);
 	$selected.removeClass('btn-default').addClass('btn-primary');
 
+	$(`.timeline-stage-notes[data-timeline='${timeline}']`).hide();
+	$(`.timeline-stage-notes[data-timeline='${timeline}'][data-stage='${stage}']`).show();
+
 	project_milestones.stages.load_documents(timeline, stage);
 };
 
@@ -43,7 +46,11 @@ project_milestones.stages.load_documents = function(timeline, stage) {
 				let field_list = project_milestones.stages.make_table_field_list(timeline);
 
 				if (r.message && r.message.length) {
-					$(`.timeline-document-section[data-timeline='${timeline}']`).show();
+					const $documents_section = $(`.timeline-document-section[data-timeline='${timeline}']`);
+					$documents_section.show();
+					$('.card-header', $documents_section).text(`${timeline} ${stage} Documents`);
+
+
 					$.each(r.message || [], function (i, document) {
 						let $tr = $('<tr></tr>');
 						$.each(field_list || [], function (i, field) {

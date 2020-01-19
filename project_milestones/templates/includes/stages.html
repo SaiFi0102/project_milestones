@@ -24,6 +24,17 @@
         </div>
     </div>
 
+    {% if has_field_permission('stage_notes', 'stages') %}
+        {% for d in stages %}
+            {% if d.stage_notes %}
+            <div class="card mb-3 timeline-stage-notes" data-timeline="{{ timeline }}" data-stage="{{ d.project_stage }}" {% if not d.selected %}style="display: none;"{% endif %}>
+                <div class="card-header">{{ _("{0} {1} Notes").format(timeline, d.project_stage) }}</div>
+                <div class="card-body">{{ d.stage_notes }}</div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     {% if has_field_permission('documents') %}
     <div class="card mb-3 timeline-document-section" data-timeline="{{ timeline }}">
         <div class="card-header">{{ _("{0} Documents").format(timeline) }}</div>
