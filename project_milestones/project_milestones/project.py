@@ -4,6 +4,7 @@ from frappe.utils import flt, cint
 from six import string_types, iteritems
 from frappe.model.meta import get_field_precision
 from frappe.utils import get_fullname
+from frappe.core.doctype.file.file import create_new_folder
 import json
 import os
 
@@ -429,11 +430,18 @@ def upload_document():
 	check_project_timeline_permission(project_timeline, 'write')
 	check_client_view_permission(client_view)
 
+	if not frappe.get_all("File", filters={"folder": "Home", "file_name": "Projects", "is_folder": 1}, limit=1):
+		create_new_folder("Projects", "Home")
+	if not frappe.get_all("File", filters={"folder": "Home/Projects", "file_name": project_name, "is_folder": 1}, limit=1):
+		create_new_folder(project_name, "Home/Projects")
+	if not frappe.get_all("File", filters={"folder": "Home/Projects/{0}".format(project_name), "file_name": "Attachments", "is_folder": 1}, limit=1):
+		create_new_folder("Attachments", "Home/Projects/{0}".format(project_name))
+
 	file_doc = frappe.get_doc({
 		"doctype": "File",
 		"attached_to_doctype": "Project",
 		"attached_to_name": project_name,
-		"folder": 'Home/Project Documents',
+		"folder": 'Home/Projects/{0}/Attachments'.format(project_name),
 		"file_name": frappe.local.uploaded_filename,
 		"file_url": frappe.form_dict.file_url,
 		"is_private": 1,
