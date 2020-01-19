@@ -21,7 +21,7 @@
    "fieldname": "allowed_roles",
    "fieldtype": "Table",
    "label": "Allowed Roles",
-   "options": "Has Role"
+   "options": "Project Timeline Permission"
   },
   {
    "default": "0",
@@ -32,7 +32,7 @@
   }
  ],
  "links": [],
- "modified": "2020-01-08 19:04:23.259896",
+ "modified": "2020-01-19 17:14:13.355335",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Timeline",

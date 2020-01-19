@@ -168,7 +168,7 @@ def get_timeline_stage_map(self, ignore_permissions=False):
 	if not ignore_permissions:
 		to_remove = []
 		for project_timeline in stage_map.keys():
-			if not has_project_timeline_permission(project_timeline):
+			if not has_project_timeline_permission(project_timeline, 'read'):
 				to_remove.append(project_timeline)
 
 		for project_timeline in to_remove:
@@ -402,7 +402,7 @@ def download_document(docname, fieldname):
 		['parent', 'project_timeline', 'client_view', fieldname])
 
 	check_project_user_permission(project_name)
-	check_project_timeline_permission(project_timeline)
+	check_project_timeline_permission(project_timeline, 'read')
 	check_client_view_permission(client_view)
 
 	file_doc = frappe.get_doc("File", {"file_url": file_url})
@@ -426,7 +426,7 @@ def upload_document():
 		['parent', 'project_timeline', 'client_view'])
 
 	check_project_user_permission(project_name)
-	check_project_timeline_permission(project_timeline)
+	check_project_timeline_permission(project_timeline, 'write')
 	check_client_view_permission(client_view)
 
 	file_doc = frappe.get_doc({
@@ -472,7 +472,7 @@ def clear_document(docname, fieldname):
 
 	check_clear_attachment_permission()
 	check_project_user_permission(project_name)
-	check_project_timeline_permission(project_timeline)
+	check_project_timeline_permission(project_timeline, 'write')
 	check_client_view_permission(client_view)
 
 	project = frappe.get_doc("Project", project_name)
@@ -504,7 +504,7 @@ def set_document_client_view(docname, value):
 		['parent', 'project_timeline', 'client_view'])
 
 	check_project_user_permission(project_name)
-	check_project_timeline_permission(project_timeline)
+	check_project_timeline_permission(project_timeline, 'write')
 	check_client_view_permission(client_view)
 
 	project = frappe.get_doc("Project", project_name)
@@ -527,7 +527,7 @@ def approve_document(docname, remarks=None):
 		['parent', 'project_timeline', 'client_view'])
 
 	check_project_user_permission(project_name)
-	check_project_timeline_permission(project_timeline)
+	check_project_timeline_permission(project_timeline, 'write')
 	check_client_view_permission(client_view)
 
 	project = frappe.get_doc("Project", project_name)
@@ -557,7 +557,7 @@ def reject_document(docname, remarks=None):
 		['parent', 'project_timeline', 'client_view'])
 
 	check_project_user_permission(project_name)
-	check_project_timeline_permission(project_timeline)
+	check_project_timeline_permission(project_timeline, 'write')
 	check_client_view_permission(client_view)
 
 	project = frappe.get_doc("Project", project_name)
@@ -584,7 +584,7 @@ def request_review_document(docname):
 		['parent', 'project_timeline', 'client_view'])
 
 	check_project_user_permission(project_name)
-	check_project_timeline_permission(project_timeline)
+	check_project_timeline_permission(project_timeline, 'write')
 	check_client_view_permission(client_view)
 
 	project = frappe.get_doc("Project", project_name)
@@ -641,14 +641,22 @@ def check_project_user_permission(project_name, user=None):
 		raise frappe.PermissionError
 
 
-def check_project_timeline_permission(project_timeline, user=None):
-	if not has_project_timeline_permission(project_timeline, user):
+def check_project_timeline_permission(project_timeline, ptype, user=None):
+	if not has_project_timeline_permission(project_timeline, ptype, user):
 		raise frappe.PermissionError
 
 
-def has_project_timeline_permission(project_timeline, user=None):
+def has_project_timeline_permission(project_timeline, ptype, user=None):
+	if ptype not in ['read', 'write']:
+		return False
+
 	doc = frappe.get_cached_doc("Project Timeline", project_timeline)
-	allowed_roles = [d.role for d in doc.allowed_roles]
+
+	filters = None
+	if ptype == 'write':
+		filters = {'write': 1}
+
+	allowed_roles = [d.role for d in doc.get('allowed_roles', filters=filters)]
 	user_roles = frappe.get_roles(user)
 
 	for role in user_roles:

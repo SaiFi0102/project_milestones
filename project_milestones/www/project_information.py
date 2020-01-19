@@ -4,11 +4,14 @@ from frappe import _
 from frappe.utils import cint
 from project_milestones.project_milestones.project import get_timeline_stage_map,\
 	get_supplier_wise_project_order_billing_payment, check_project_user_permission, has_clear_attachment_permission,\
-	has_comment_section_permission
+	has_comment_section_permission, has_project_timeline_permission
 
 
 def get_context(context):
-	def has_field_permission(fieldname, parent=None, ptype='read'):
+	def has_field_permission(fieldname, parent=None, ptype='read', project_timeline=None):
+		if project_timeline and not has_project_timeline_permission(project_timeline, ptype):
+			return 0
+
 		meta = context.doc.meta
 		if parent:
 			table_field = meta.get_field(parent)

@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2020-01-19 16:50:46.012516",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "role",
+  "write"
+ ],
+ "fields": [
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Role",
+   "oldfieldname": "role",
+   "oldfieldtype": "Link",
+   "options": "Role"
+  },
+  {
+   "default": "0",
+   "fieldname": "write",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Write"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-01-19 17:30:15.181347",
+ "modified_by": "Administrator",
+ "module": "Project Milestones",
+ "name": "Project Timeline Permission",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

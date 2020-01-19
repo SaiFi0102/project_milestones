@@ -50,11 +50,11 @@
                         {% endif %}
                         {% if has_field_permission('document_version', 'documents') %}
                             <th data-timeline="{{ timeline }}" data-fieldname="document_version" data-fieldtype="Int"
-                                style="text-align: center">{{ _("Ver") }}</th>
+                                style="text-align: center">{{ _("V") }}</th>
                         {% endif %}
                         {% if has_field_permission('client_view', 'documents') %}
                             <th data-timeline="{{ timeline }}" data-fieldname="client_view" data-fieldtype="Check"
-                                data-canwrite="{{ has_field_permission('client_view', 'documents', 'write') }}"
+                                data-canwrite="{{ has_field_permission('client_view', 'documents', 'write', timeline) }}"
                                 style="text-align: center">{{ _("Client View") }}</th>
                         {% endif %}
                         {% if has_field_permission('submitted_attachment_date', 'documents') %}
@@ -63,19 +63,19 @@
                         {% endif %}
                         {% if has_field_permission('submitted_attachment', 'documents') %}
                             <th data-timeline="{{ timeline }}" data-fieldname="submitted_attachment" data-fieldtype="Attach"
-                                data-canwrite="{{ has_field_permission('submitted_attachment', 'documents', 'write') }}"
+                                data-canwrite="{{ has_field_permission('submitted_attachment', 'documents', 'write', timeline) }}"
                                 data-canclear="{{ can_clear_attachments }}"
                                 style="text-align: center">{{ _("Submitted Attachment") }}</th>
                         {% endif %}
                         {% if has_field_permission('reviewed_attachment', 'documents') %}
                             <th data-timeline="{{ timeline }}" data-fieldname="reviewed_attachment" data-fieldtype="Attach"
-                                data-canwrite="{{ has_field_permission('reviewed_attachment', 'documents', 'write') }}"
+                                data-canwrite="{{ has_field_permission('reviewed_attachment', 'documents', 'write', timeline) }}"
                                 data-canclear="{{ can_clear_attachments }}"
                                 style="text-align: center">{{ _("Reviewed Attachment") }}</th>
                         {% endif %}
                         {% if has_field_permission('document_status', 'documents') %}
                             <th data-timeline="{{ timeline }}" data-fieldname="document_status" data-fieldtype="Status"
-                                data-canwrite="{{ has_field_permission('document_status', 'documents', 'write') }}"
+                                data-canwrite="{{ has_field_permission('document_status', 'documents', 'write', timeline) }}"
                                 style="text-align: center">{{ _("Status") }}</th>
                         {% endif %}
                     </tr>
