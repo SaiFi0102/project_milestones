@@ -72,7 +72,7 @@
 {% endmacro %}
 
 {% macro print_comment_section(comment_section, comment_list) %}
-<d`iv class="comments">
+<div class="comments">
 	{% include 'templates/includes/project_comments.html' %}
 </div>
 {% endmacro %}
@@ -81,6 +81,7 @@
 	<style>
 		{% include 'templates/includes/stages.css' %}
 	</style>
+	<link type="text/css" rel="stylesheet" href="/assets/css/project_milestones.css">
 {% endblock %}
 
 {% block script %}

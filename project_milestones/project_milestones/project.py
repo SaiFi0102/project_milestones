@@ -13,6 +13,8 @@ def validate(self, method):
 	validate_single_stage_timeline(self, 'stages')
 	validate_single_stage_timeline(self, 'documents')
 	reorder_stages(self)
+	validate_document_uniqueness(self)
+	validate_document_version(self)
 	validate_document_status(self)
 	set_document_status(self)
 	validate_stage_status(self)
@@ -54,18 +56,83 @@ def reorder_stages(self):
 		d.idx = i + 1
 
 
+def validate_document_version(self):
+	timeline_map = get_timeline_stage_document_map(self)
+	for timeline, stage_map in iteritems(timeline_map):
+		for stage, documents in iteritems(stage_map):
+			document_versions = {}
+			for d in documents:
+				document_versions.setdefault(d.document_name, []).append(d)
+
+			for document_name, versions in iteritems(document_versions):
+				prev_version_doc = None
+				for d in sorted(versions, key=lambda d: d.document_version):
+					if prev_version_doc:
+						if d.document_version - 1 != prev_version_doc.document_version:
+							frappe.throw(_("{0} document {1} in stage {2}: Invalid version {3} expected version {4}").format(
+								d.project_timeline, frappe.bold(d.document_name), d.project_stage, d.document_version,
+								prev_version_doc.document_version + 1))
+						if prev_version_doc.document_status != "Rejected":
+							frappe.throw(_("{0} document {1} in stage {2}: Cannot have version {3} because version {4} is not Rejected").format(
+								d.project_timeline, frappe.bold(d.document_name), d.project_stage, d.document_version, prev_version_doc.document_version))
+					else:
+						if d.document_version != 1:
+							frappe.throw(_("{0} document {1} in stage {2}: Invalid version {3} expected version 1").format(
+								d.project_timeline, frappe.bold(d.document_name), d.project_stage, d.document_version))
+
+					prev_version_doc = d
+
+				if prev_version_doc.document_status == "Rejected":
+					create_document_version(self, prev_version_doc)
+
+
+def create_document_version(self, prev_version_doc):
+	new_version = frappe.copy_doc(prev_version_doc)
+	new_version.submitted_attachment = None
+	new_version.submitted_attachment_date = None
+	new_version.reviewed_attachment = None
+	new_version.reviewed_attachment_date = None
+	new_version.document_status = "Awaiting Upload"
+	new_version.document_version = prev_version_doc.document_version + 1
+
+	new_list = []
+	for d in self.documents:
+		new_list.append(d)
+		if d == prev_version_doc:
+			new_list.append(new_version)
+
+	for i, d in enumerate(new_list):
+		d.idx = i + 1
+
+	self.documents = new_list
+
+
+def validate_document_uniqueness(self):
+	timeline_map = get_timeline_stage_document_map(self)
+	for timeline, stage_map in iteritems(timeline_map):
+		for stage, documents in iteritems(stage_map):
+			document_set = set()
+			for d in documents:
+				key = (d.document_name, d.document_version)
+				if key in document_set:
+					frappe.throw(_("{0} document {1} version {2} in stage {3} is duplicated").format(
+						d.project_timeline, frappe.bold(d.document_name), d.document_version, d.project_stage))
+				else:
+					document_set.add(key)
+
+
 def validate_document_status(self):
 	for d in self.documents:
-		if d.document_status == "Approved":
+		if d.document_status in ["Approved", "Conditionally Approved", "Rejected", "Review Required"]:
 			if not d.submitted_attachment:
-				frappe.throw(_("Cannot Approve {0} document {1} if document is not uploaded")
-					.format(d.project_timeline, frappe.bold(d.document_name)))
+				frappe.throw(_("Cannot set status as {0} for {1} document {2} version {3} in stage {4} if document is not uploaded")
+					.format(d.document_status, d.project_timeline, frappe.bold(d.document_name), d.document_version, d.project_stage))
 
 
 def set_document_status(self):
 	for d in self.documents:
 		if d.submitted_attachment:
-			if d.document_status not in ["Approved", "Review Required"]:
+			if d.document_status not in ["Approved", "Conditionally Approved", "Rejected", "Review Required"]:
 				d.document_status = "Pending Approval"
 		else:
 			d.document_status = "Awaiting Upload"
@@ -76,7 +143,8 @@ def validate_stage_status(self):
 
 	for d in self.stages:
 		if d.stage_status == "Completed":
-			any_unapproved = any([d.document_status != "Approved" for d in document_map[d.project_timeline][d.project_stage]])
+			any_unapproved = any([d.document_status not in ["Approved", "Conditionally Approved"] for d
+				in document_map[d.project_timeline][d.project_stage]])
 			if any_unapproved:
 				frappe.throw(_("Cannot set status of {0} stage {1} as Completed because some documents still require approval")
 					.format(d.project_timeline, frappe.bold(d.project_stage)))
@@ -388,8 +456,9 @@ def upload_document():
 	document_row.set(fieldname + "_date", frappe.utils.today())
 	project.save()
 
-	frappe.msgprint(_("{0} Document {1} {2} has been successfully uploaded").format(document_row.project_timeline,
-		frappe.bold(document_row.document_name), frappe.unscrub(fieldname)))
+	frappe.msgprint(_("{0} document {1} version {2} {3} has been successfully uploaded").format(
+		document_row.project_timeline, frappe.bold(document_row.document_name), document_row.document_version,
+		frappe.unscrub(fieldname)))
 
 	return file_doc
 
@@ -413,9 +482,10 @@ def clear_document(docname, fieldname):
 
 	document_row = document_row[0]
 
-	if document_row.document_status == "Approved":
-		frappe.throw(_("{0} Document {1} {2} cannot be cleared because it is <b>Approved</b>").format(
-			document_row.project_timeline, frappe.bold(document_row.document_name), frappe.unscrub(fieldname)))
+	if document_row.document_status in ["Approved", "Conditionally Approved", "Rejected"]:
+		frappe.throw(_("{0} document {1} version {2} {3} cannot be cleared because it is {4}").format(
+			document_row.project_timeline, frappe.bold(document_row.document_name), document_row.document_version,
+			frappe.unscrub(fieldname), frappe.bold(document_row.document_status)))
 
 	if not document_row.get(fieldname):
 		frappe.throw(_("Nothing to clear"))
@@ -423,8 +493,9 @@ def clear_document(docname, fieldname):
 	document_row.set(fieldname, "")
 	project.save()
 
-	frappe.msgprint(_("{0} Document {1} {2} has been successfully <b>cleared</b>").format(document_row.project_timeline,
-		frappe.bold(document_row.document_name), frappe.unscrub(fieldname)))
+	frappe.msgprint(_("{0} document {1} version {2} {3} has been successfully <b>cleared</b>").format(
+		document_row.project_timeline, frappe.bold(document_row.document_name), document_row.document_version,
+		frappe.unscrub(fieldname)))
 
 
 @frappe.whitelist()
@@ -446,12 +517,12 @@ def set_document_client_view(docname, value):
 	project.save()
 
 	allowed_disallowed = "allowed" if document_row.client_view else "disallowed"
-	frappe.msgprint(_("{0} Document {1} is {2} for client view").format(document_row.project_timeline,
+	frappe.msgprint(_("{0} document {1} is {2} for client view").format(document_row.project_timeline,
 		frappe.bold(document_row.document_name), allowed_disallowed))
 
 
 @frappe.whitelist()
-def approve_document(docname):
+def approve_document(docname, remarks=None):
 	project_name, project_timeline, client_view = frappe.db.get_value("Project Document", docname,
 		['parent', 'project_timeline', 'client_view'])
 
@@ -465,14 +536,46 @@ def approve_document(docname):
 		frappe.throw(_("Invalid Document Selected"))
 
 	document_row = document_row[0]
-	if document_row.document_status == "Approved":
-		frappe.throw(_("Document is already approved"))
+	if document_row.document_status in ["Approved", "Conditionally Approved"]:
+		frappe.throw(_("Document is already {0}").format(frappe.bold(document_row.document_status)))
 
-	document_row.document_status = "Approved"
+	if remarks:
+		document_row.document_status = "Conditionally Approved"
+		document_row.remarks = remarks
+	else:
+		document_row.document_status = "Approved"
 	project.save()
 
-	frappe.msgprint(_("{0} Document {1} has been successfully <b>Approved</b>").format(document_row.project_timeline,
-		frappe.bold(document_row.document_name)))
+	frappe.msgprint(_("{0} document {1} version {2} has been successfully {3}").format(
+		document_row.project_timeline, frappe.bold(document_row.document_name), document_row.document_version,
+		frappe.bold(document_row.document_status)))
+
+
+@frappe.whitelist()
+def reject_document(docname, remarks=None):
+	project_name, project_timeline, client_view = frappe.db.get_value("Project Document", docname,
+		['parent', 'project_timeline', 'client_view'])
+
+	check_project_user_permission(project_name)
+	check_project_timeline_permission(project_timeline)
+	check_client_view_permission(client_view)
+
+	project = frappe.get_doc("Project", project_name)
+	document_row = project.get("documents", filters={"name": docname})
+	if not document_row:
+		frappe.throw(_("Invalid Document Selected"))
+
+	document_row = document_row[0]
+	if document_row.document_status in ["Approved", "Conditionally Approved", "Rejected"]:
+		frappe.throw(_("Document is already {0}").format(frappe.bold(document_row.document_status)))
+
+	document_row.document_status = "Rejected"
+	document_row.remarks = remarks
+	project.save()
+
+	frappe.msgprint(_("{0} document {1} version {2} has been successfully {3}").format(
+		document_row.project_timeline, frappe.bold(document_row.document_name), document_row.document_version,
+		frappe.bold(document_row.document_status)))
 
 
 @frappe.whitelist()
@@ -490,16 +593,16 @@ def request_review_document(docname):
 		frappe.throw(_("Invalid Document Selected"))
 
 	document_row = document_row[0]
-	if document_row.document_status == "Approved":
-		frappe.throw(_("Document is already approved"))
+	if document_row.document_status in ["Approved", "Conditionally Approved"]:
+		frappe.throw(_("Document is already {0}").format(frappe.bold(document_row.document_status)))
 	if document_row.document_status == "Review Required":
 		frappe.throw(_("Document is already pending for review"))
 
 	document_row.document_status = "Review Required"
 	project.save()
 
-	frappe.msgprint(_("{0} Document {1} has been requested for review").format(document_row.project_timeline,
-		frappe.bold(document_row.document_name)))
+	frappe.msgprint(_("{0} document {1} version {2} has been requested for review").format(
+		document_row.project_timeline, frappe.bold(document_row.document_name), document_row.document_version))
 
 
 @frappe.whitelist()
