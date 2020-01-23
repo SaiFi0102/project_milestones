@@ -88,11 +88,7 @@ def validate_document_version(self):
 
 
 def create_document_version(self, prev_version_doc):
-	new_version = frappe.copy_doc(prev_version_doc)
-	new_version.submitted_attachment = None
-	new_version.submitted_attachment_date = None
-	new_version.reviewed_attachment = None
-	new_version.reviewed_attachment_date = None
+	new_version = frappe.copy_doc(prev_version_doc, False)
 	new_version.document_status = "Awaiting Upload"
 	new_version.document_version = prev_version_doc.document_version + 1
 

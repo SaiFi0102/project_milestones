@@ -48,10 +48,6 @@
                             <th data-timeline="{{ timeline }}" data-fieldname="document_name" data-fieldtype="Data"
                                 >{{ _("Document Name") }}</th>
                         {% endif %}
-                        {% if has_field_permission('document_version', 'documents') %}
-                            <th data-timeline="{{ timeline }}" data-fieldname="document_version" data-fieldtype="Int"
-                                style="text-align: center">{{ _("V") }}</th>
-                        {% endif %}
                         {% if has_field_permission('client_view', 'documents') %}
                             <th data-timeline="{{ timeline }}" data-fieldname="client_view" data-fieldtype="Check"
                                 data-canwrite="{{ has_field_permission('client_view', 'documents', 'write', timeline) }}"

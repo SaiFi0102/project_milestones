@@ -54,6 +54,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
+   "no_copy": 1,
    "options": "Awaiting Upload\nPending Approval\nReview Required\nConditionally Approved\nApproved\nRejected",
    "reqd": 1
   },
@@ -69,12 +70,14 @@
   {
    "fieldname": "submitted_attachment",
    "fieldtype": "Attach",
-   "label": "Submitted Attachment"
+   "label": "Submitted Attachment",
+   "no_copy": 1
   },
   {
    "fieldname": "reviewed_attachment",
    "fieldtype": "Attach",
-   "label": "Reviewed Attachment"
+   "label": "Reviewed Attachment",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_4",
@@ -92,12 +95,14 @@
    "fieldname": "submitted_attachment_date",
    "fieldtype": "Date",
    "label": "Submitted Date",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "reviewed_attachment_date",
    "fieldtype": "Date",
    "label": "Reviewed Date",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -113,12 +118,13 @@
   {
    "fieldname": "remarks",
    "fieldtype": "Text Editor",
-   "label": "Remarks"
+   "label": "Remarks",
+   "no_copy": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-01-17 03:50:35.555735",
+ "modified": "2020-01-22 19:15:11.227178",
  "modified_by": "Administrator",
  "module": "Project Milestones",
  "name": "Project Document",
