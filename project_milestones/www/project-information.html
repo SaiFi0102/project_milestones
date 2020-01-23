@@ -132,15 +132,12 @@ $(".file-size").each(function() {
 		'mep_contractor'
 	]) }}
 
-	{{ display_section("Authority Milestones", [
-		'authority_drawings_submittal',
-		'electrical_meter_request',
-		'authority_inspections_request'
-	], permission_field='portal_authority_milestones_section') }}
-
 	{{ display_section("Fit-Out and Trading Information", [
+		'design_start_date',
+		'design_completion_date',
+		'fitout_start_date',
+		'fitout_completion_date',
 		'handover_date',
-		'prestart_meeting',
 		'start_onsite',
 		'fitout_complete',
 		'merchandising_date',
