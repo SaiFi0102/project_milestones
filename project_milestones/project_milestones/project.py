@@ -16,7 +16,7 @@ def validate(self, method):
 	reorder_stages(self)
 	validate_document_uniqueness(self)
 	validate_document_version(self)
-	validate_document_status(self)
+	# validate_document_status(self)
 	set_document_status(self)
 	validate_stage_status(self)
 	update_costing(self)
